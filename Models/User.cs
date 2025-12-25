@@ -1,13 +1,27 @@
-﻿namespace AccessControl_API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AccessControl_API.Models
 {
     public class User
     {
-        public Guid Id { get; set; }
-        public required string Name { get; set; }
-        public required string Surname { get; set; }
-        public string? Email { get; set; }
-        public required string PhoneNumber { get; set; }
-        public ICollection<UserGroup> userGroups { get; set; } = new List<UserGroup>();
+        [Key]
+        public int Id { get; set; }
+
+        [Required, MaxLength(100)]
+        public string FirstName { get; set; } = null!;
+
+        [Required, MaxLength(100)]
+        public string LastName { get; set; } = null!;
+
+        [Required, MaxLength(50)]
+        public string IdentificationNumber { get; set; } = null!;
+
+
+
+
+        // Navigation properties
+        public List<UserGroup> UserGroups { get; set; } = new();
+        public List<VisitLog> VisitLogs { get; set; } = new();
 
     }
 

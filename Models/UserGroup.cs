@@ -1,10 +1,18 @@
-﻿namespace AccessControl_API.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AccessControl_API.Models
 {
     public class UserGroup
     {
-        public Guid UserId { get; set; }
-        public User User { get; set; }
-        public Guid GroupId { get; set; }
-        public Group Group { get; set; }
+        [Key, Column(Order = 0)]
+        [ForeignKey(nameof(User))]
+        public int UserId { get; set; }
+        public User User { get; set; } = null!;
+
+        [Key, Column(Order = 1)]
+        [ForeignKey(nameof(Group))]
+        public int GroupId { get; set; }
+        public Group Group { get; set; } = null!;
     }
 }

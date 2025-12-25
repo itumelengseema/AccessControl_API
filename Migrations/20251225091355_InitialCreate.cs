@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace AccessControl_API.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,8 +15,9 @@ namespace AccessControl_API.Migrations
                 name: "Groups",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,8 +28,9 @@ namespace AccessControl_API.Migrations
                 name: "Permissions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -39,11 +41,11 @@ namespace AccessControl_API.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Surname = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    IdentificationNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -54,8 +56,8 @@ namespace AccessControl_API.Migrations
                 name: "GroupPermissions",
                 columns: table => new
                 {
-                    GroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PermissionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    GroupId = table.Column<int>(type: "int", nullable: false),
+                    PermissionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -78,8 +80,8 @@ namespace AccessControl_API.Migrations
                 name: "UserGroups",
                 columns: table => new
                 {
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    GroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    GroupId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,6 +100,29 @@ namespace AccessControl_API.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "VisitLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    CheckInTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CheckOutTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CarRegistrationNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VisitLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VisitLogs_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_GroupPermissions_PermissionId",
                 table: "GroupPermissions",
@@ -107,6 +132,11 @@ namespace AccessControl_API.Migrations
                 name: "IX_UserGroups_GroupId",
                 table: "UserGroups",
                 column: "GroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VisitLogs_UserId",
+                table: "VisitLogs",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -117,6 +147,9 @@ namespace AccessControl_API.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserGroups");
+
+            migrationBuilder.DropTable(
+                name: "VisitLogs");
 
             migrationBuilder.DropTable(
                 name: "Permissions");

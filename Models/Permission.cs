@@ -1,9 +1,16 @@
-﻿namespace AccessControl_API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace AccessControl_API.Models
 {
     public class Permission
     {
-        public Guid Id { get; set; }
+        [Key]
+        public int Id { get; set; }
+
+        [Required, MaxLength(100)]
         public string Name { get; set; } = null!;
-        public ICollection<GroupPermission> GroupPermissions { get; set; } = new List<GroupPermission>();
+
+        // Navigation properties
+        public List<GroupPermission> GroupPermissions { get; set; } = new();
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccessControl_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251219125440_initial")]
-    partial class initial
+    [Migration("20251225091355_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,13 +27,16 @@ namespace AccessControl_API.Migrations
 
             modelBuilder.Entity("AccessControl_API.Models.Group", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -42,11 +45,13 @@ namespace AccessControl_API.Migrations
 
             modelBuilder.Entity("AccessControl_API.Models.GroupPermission", b =>
                 {
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("GroupId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
-                    b.Property<Guid>("PermissionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
 
                     b.HasKey("GroupId", "PermissionId");
 
@@ -57,13 +62,16 @@ namespace AccessControl_API.Migrations
 
             modelBuilder.Entity("AccessControl_API.Models.Permission", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -72,24 +80,26 @@ namespace AccessControl_API.Migrations
 
             modelBuilder.Entity("AccessControl_API.Models.User", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PhoneNumber")
+                    b.Property<string>("IdentificationNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Surname")
+                    b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -98,11 +108,13 @@ namespace AccessControl_API.Migrations
 
             modelBuilder.Entity("AccessControl_API.Models.UserGroup", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("GroupId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
 
                     b.HasKey("UserId", "GroupId");
 
@@ -111,10 +123,41 @@ namespace AccessControl_API.Migrations
                     b.ToTable("UserGroups");
                 });
 
+            modelBuilder.Entity("AccessControl_API.Models.VisitLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CarRegistrationNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CheckInTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CheckOutTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("VisitLogs");
+                });
+
             modelBuilder.Entity("AccessControl_API.Models.GroupPermission", b =>
                 {
                     b.HasOne("AccessControl_API.Models.Group", "Group")
-                        .WithMany("GroupPermission")
+                        .WithMany("GroupPermissions")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -139,7 +182,7 @@ namespace AccessControl_API.Migrations
                         .IsRequired();
 
                     b.HasOne("AccessControl_API.Models.User", "User")
-                        .WithMany("userGroups")
+                        .WithMany("UserGroups")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -149,9 +192,20 @@ namespace AccessControl_API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AccessControl_API.Models.VisitLog", b =>
+                {
+                    b.HasOne("AccessControl_API.Models.User", "User")
+                        .WithMany("VisitLogs")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("AccessControl_API.Models.Group", b =>
                 {
-                    b.Navigation("GroupPermission");
+                    b.Navigation("GroupPermissions");
 
                     b.Navigation("UserGroups");
                 });
@@ -163,7 +217,9 @@ namespace AccessControl_API.Migrations
 
             modelBuilder.Entity("AccessControl_API.Models.User", b =>
                 {
-                    b.Navigation("userGroups");
+                    b.Navigation("UserGroups");
+
+                    b.Navigation("VisitLogs");
                 });
 #pragma warning restore 612, 618
         }
