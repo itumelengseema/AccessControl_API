@@ -1,4 +1,5 @@
 ﻿using AccessControl_API.Models;
+using AccessControl_API.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccessControl_API.Data

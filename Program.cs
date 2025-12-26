@@ -1,6 +1,9 @@
+using AccessControl_API.Authorization;
 using AccessControl_API.Data;
 using AccessControl_API.Models;
 using AccessControl_API.Models.DTO;
+using AccessControl_API.Services;
+using AccessControl_API.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +15,7 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("Jwtsettings")["SecretKey"]!);
+var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Key"]!);
 
 // Configure JWT Authentication 
 builder.Services.AddAuthentication(options =>
@@ -28,8 +31,10 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
@@ -48,6 +53,34 @@ builder.Services.AddOpenApi();
 // Configure Entity Framework and SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register Services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<JwtTokenGenerator>();
+
+// Register Authorization Handler
+builder.Services.AddScoped<PermissionHandler>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, PermissionHandler>();
+
+// Add Authorization Policies
+builder.Services.AddAuthorization(options =>
+{
+    // Define permission-based policies
+    var permissions = new[]
+    {
+        "MANAGE_USERS",
+        "CHECK_IN_VISITOR",
+        "CHECK_OUT_VISITOR",
+        "VIEW_ACTIVE_VISITORS"
+    };
+
+    foreach (var permission in permissions)
+    {
+        options.AddPolicy(permission, policy =>
+            policy.Requirements.Add(new PermissionRequirement(permission)));
+    }
+});
+
 
 // Configer AutoMapper For Object Mapping
 builder.Services.AddAutoMapper(o =>
@@ -71,6 +104,18 @@ builder.Services.AddAutoMapper(o =>
 
 var app = builder.Build();
 
+// Seed database on startup
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    
+    // Apply migrations
+    context.Database.Migrate();
+    
+    // Seed data (only runs if database is empty)
+    DbSeeder.Seed(context);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -93,3 +138,23 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static async Task SeedDataAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    // Apply any pending migrations
+    try
+    {
+        var connectionString = dbContext.Database.GetConnectionString();
+
+        Console.WriteLine("Applying migrations to database: " + connectionString);
+        await dbContext.Database.MigrateAsync();
+
+
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("An error occurred while applying migrations: " + ex.Message);
+    }
+}

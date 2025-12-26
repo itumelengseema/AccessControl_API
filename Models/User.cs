@@ -15,6 +15,10 @@ namespace AccessControl_API.Models
 
         [Required, MaxLength(50)]
         public string IdentificationNumber { get; set; } = null!;
+        [Required]
+        public string Email { get; set; } = null!;
+        [Required]
+        public string PasswordHash { get; set; } = null!;
 
 
 

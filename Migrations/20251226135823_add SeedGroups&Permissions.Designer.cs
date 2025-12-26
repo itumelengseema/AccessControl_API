@@ -4,6 +4,7 @@ using AccessControl_API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AccessControl_API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251226135823_add SeedGroups&Permissions")]
+    partial class addSeedGroupsPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,6 +41,28 @@ namespace AccessControl_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Security"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Employee"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Visitor"
+                        });
                 });
 
             modelBuilder.Entity("AccessControl_API.Models.GroupPermission", b =>
@@ -55,6 +80,43 @@ namespace AccessControl_API.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("GroupPermissions");
+
+                    b.HasData(
+                        new
+                        {
+                            GroupId = 1,
+                            PermissionId = 1
+                        },
+                        new
+                        {
+                            GroupId = 1,
+                            PermissionId = 2
+                        },
+                        new
+                        {
+                            GroupId = 1,
+                            PermissionId = 3
+                        },
+                        new
+                        {
+                            GroupId = 2,
+                            PermissionId = 1
+                        },
+                        new
+                        {
+                            GroupId = 2,
+                            PermissionId = 2
+                        },
+                        new
+                        {
+                            GroupId = 3,
+                            PermissionId = 1
+                        },
+                        new
+                        {
+                            GroupId = 4,
+                            PermissionId = 1
+                        });
                 });
 
             modelBuilder.Entity("AccessControl_API.Models.Permission", b =>
@@ -73,6 +135,23 @@ namespace AccessControl_API.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Permissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Level 1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Level 2"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Level 3"
+                        });
                 });
 
             modelBuilder.Entity("AccessControl_API.Models.User", b =>
@@ -82,10 +161,6 @@ namespace AccessControl_API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -102,13 +177,18 @@ namespace AccessControl_API.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            FirstName = "System",
+                            IdentificationNumber = "ADMIN-001",
+                            LastName = "Admin"
+                        });
                 });
 
             modelBuilder.Entity("AccessControl_API.Models.UserGroup", b =>
@@ -126,6 +206,13 @@ namespace AccessControl_API.Migrations
                     b.HasIndex("GroupId");
 
                     b.ToTable("UserGroups");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            GroupId = 1
+                        });
                 });
 
             modelBuilder.Entity("AccessControl_API.Models.VisitLog", b =>

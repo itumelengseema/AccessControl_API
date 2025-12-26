@@ -1,0 +1,129 @@
+﻿using AccessControl_API.Data;
+using AccessControl_API.Models;
+using AccessControl_API.Models.DTO;
+using AccessControl_API.Utilities;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+
+namespace AccessControl_API.Services
+{
+    public class AuthService : IAuthService
+    {
+        private readonly AppDbContext _db;
+        private readonly IMapper _mapper;
+        private readonly JwtTokenGenerator _jwtTokenGenerator;
+
+        public AuthService(AppDbContext db, IMapper mapper, JwtTokenGenerator jwtTokenGenerator)
+        {
+            _db = db;
+            _mapper = mapper;
+            _jwtTokenGenerator = jwtTokenGenerator;
+        }
+
+        public async Task<bool> IsEmailExistAsync(string email)
+        {
+            try
+            {
+                // Check if any user with the given email exists
+                return await _db.Users.AnyAsync(u => u.Email == email);
+            }
+            catch (Exception)
+            {
+                // Log exception details here if necessary
+                throw;
+            }
+        }
+
+        public async Task<LoginResponseDTO?> LoginAsync(LoginRequestDTO loginRequestDTO)
+        {
+            try
+            {
+                // Find user by email
+                var user = await _db.Users
+                    .FirstOrDefaultAsync(u => u.Email == loginRequestDTO.Email);
+
+                if (user == null)
+                {
+                    return null; // User not found
+                }
+
+                // Verify password
+                if (!PasswordHasher.Verify(loginRequestDTO.Password, user.PasswordHash))
+                {
+                    return null; // Invalid password
+                }
+
+                // Generate JWT token
+                var token = _jwtTokenGenerator.GenerateToken(user);
+
+                // Return login response with user data and token
+                return new LoginResponseDTO
+                {
+                    User = _mapper.Map<UserDTO>(user),
+                    Token = token
+                };
+            }
+            catch (Exception)
+            {
+                // Log exception details here if necessary
+                throw;
+            }
+        }
+
+        public async Task<UserDTO?> RegisterAsync(RegistrationRequestDTO registrationRequestDTO)
+        {
+            try
+            {
+                // Check if email already exists
+                var emailExists = await IsEmailExistAsync(registrationRequestDTO.Email);
+                if (emailExists)
+                {
+                    // Log for debugging
+                    Console.WriteLine($"Email already exists: {registrationRequestDTO.Email}");
+                    return null; // Email already exists
+                }
+
+                // Verify that the group exists
+                var groupExists = await _db.Groups.AnyAsync(g => g.Id == registrationRequestDTO.GroupId);
+                if (!groupExists)
+                {
+                    // Log for debugging
+                    Console.WriteLine($"Invalid group ID: {registrationRequestDTO.GroupId}");
+                    return null; // Invalid group ID
+                }
+
+                // Create new user
+                var user = new User
+                {
+                    FirstName = registrationRequestDTO.FirstName,
+                    LastName = registrationRequestDTO.LastName,
+                    Email = registrationRequestDTO.Email,
+                    IdentificationNumber = registrationRequestDTO.IdentificationNumber,
+                    PasswordHash = PasswordHasher.Hash(registrationRequestDTO.Password)
+                };
+
+                _db.Users.Add(user);
+                await _db.SaveChangesAsync();
+
+                // Assign user to the specified group
+                var userGroup = new UserGroup
+                {
+                    UserId = user.Id,
+                    GroupId = registrationRequestDTO.GroupId
+                };
+
+                _db.UserGroups.Add(userGroup);
+                await _db.SaveChangesAsync();
+
+                // Map User to UserDTO and return
+                return _mapper.Map<UserDTO>(user);
+            }
+            catch (Exception ex)
+            {
+                // Log exception details here
+                Console.WriteLine($"Registration error: {ex.Message}");
+                throw;
+            }
+        }
+    }
+}
