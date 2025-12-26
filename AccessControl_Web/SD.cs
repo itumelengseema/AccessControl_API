@@ -2,9 +2,12 @@
 {
     public static class SD
     {
-        GET,
+        public enum ApiType
+        {
+            GET,
             POST,
             PUT,
             DELETE
+        }
     }
 }

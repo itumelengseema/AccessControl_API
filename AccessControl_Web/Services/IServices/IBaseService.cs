@@ -2,5 +2,8 @@
 {
     public interface IBaseServices
     {
+
+        Task<T> SendAsync<T>(ApiRequest apiRequest);
+
     }
 }
