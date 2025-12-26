@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="../AccessControl.DTO/AccessControl.DTO.csproj" Id="ac5db30b-3988-4ba3-993e-1883f8b1a985" />
+  <Project Path="../AccessControl_Web/AccessControl_Web.csproj" Id="7940ac8e-539d-42fa-80a6-fdd98a863d76" />
   <Project Path="AccessControl_API.csproj" />
 </Solution>
