@@ -3,48 +3,220 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - AccessControl_Web</title>
-    <script type="importmap"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>@ViewData["Title"] - Access Control System</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/AccessControl_Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css?v=@DateTime.Now.Ticks" />
+    <link rel="stylesheet" href="~/css/dashboard.css?v=@DateTime.Now.Ticks" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AccessControl_Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    @{
+        var isAuthenticated = Context.Session.GetString("Token") != null;
+        var userName = Context.Session.GetString("UserName") ?? "User";
+        var userEmail = Context.Session.GetString("UserEmail") ?? "";
+    }
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - AccessControl_Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    @if (isAuthenticated)
+    {
+        <!-- Dashboard Layout for Authenticated Users -->
+        <div class="wrapper">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        <span class="logo-text">Access Control</span>
+                    </div>
+                </div>
+
+                <ul class="list-unstyled components">
+                    <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")">
+                        <a asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Users" ? "active" : "")">
+                        <a asp-controller="Users" asp-action="Index">
+                            <i class="bi bi-people-fill"></i>
+                            <span>Users</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Groups" ? "active" : "")">
+                        <a asp-controller="Groups" asp-action="Index">
+                            <i class="bi bi-diagram-3-fill"></i>
+                            <span>Groups</span>
+                        </a>
+                    </li>
+                    <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "VisitLogs" ? "active" : "")">
+                        <a asp-controller="VisitLogs" asp-action="Index">
+                            <i class="bi bi-door-open-fill"></i>
+                            <span>Active Visitors</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="sidebar-footer">
+                    <a asp-controller="Auth" asp-action="Logout" class="logout-btn">
+                        <i class="bi bi-box-arrow-left"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div id="content">
+                <!-- Top Navigation Bar -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+                    <div class="container-fluid">
+                        <button type="button" id="sidebarCollapse" class="btn btn-primary">
+                            <i class="bi bi-list"></i>
+                        </button>
+
+                        <div class="ms-auto d-flex align-items-center">
+                            <!-- Notifications -->
+                            <div class="dropdown me-3">
+                                <button class="btn btn-link text-dark position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown">
+                                    <i class="bi bi-bell fs-5"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        0
+                                    </span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                                    <li><h6 class="dropdown-header">Notifications</h6></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item small text-muted" href="#">No new notifications</a></li>
+                                </ul>
+                            </div>
+
+                            <!-- User Profile -->
+                            <div class="dropdown">
+                                <button class="btn btn-link text-dark d-flex align-items-center text-decoration-none" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                    <div class="user-avatar me-2">
+                                        @if (!string.IsNullOrEmpty(userName))
+                                        {
+                                            var initials = userName.Split(' ').Select(n => n.FirstOrDefault()).Take(2);
+                                            <span>@string.Join("", initials)</span>
+                                        }
+                                    </div>
+                                    <div class="text-start d-none d-md-block">
+                                        <div class="fw-semibold small">@userName</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">@userEmail</div>
+                                    </div>
+                                    <i class="bi bi-chevron-down ms-2"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><h6 class="dropdown-header">@userName</h6></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Auth" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Alert Messages -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="container-fluid mt-3">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="container-fluid mt-3">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                }
+
+                <!-- Main Content -->
+                <main class="main-content">
+                    @RenderBody()
+                </main>
+
+                <!-- Footer -->
+                <footer class="footer mt-auto py-3 bg-light border-top">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <span class="text-muted small">&copy; 2025 Access Control System</span>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <a asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none small">Privacy Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
         </div>
-    </footer>
+    }
+    else
+    {
+        <!-- Simple Layout for Login/Register -->
+        <div class="auth-wrapper">
+            <nav class="navbar navbar-dark bg-primary shadow-sm">
+                <div class="container">
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-shield-lock"></i> Access Control System
+                    </a>
+                    <div>
+                        <a class="btn btn-outline-light btn-sm me-2" asp-controller="Auth" asp-action="Login">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                        <a class="btn btn-light btn-sm" asp-controller="Auth" asp-action="Register">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="container mt-3">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="container mt-3">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+            }
+
+            <main class="auth-content">
+                @RenderBody()
+            </main>
+
+            <footer class="auth-footer">
+                <div class="container text-center py-3">
+                    <span class="text-muted small">&copy; 2025 Access Control System. All rights reserved.</span>
+                </div>
+            </footer>
+        </div>
+    }
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/site.js?v=@DateTime.Now.Ticks"></script>
+    <script src="~/js/dashboard.js?v=@DateTime.Now.Ticks"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

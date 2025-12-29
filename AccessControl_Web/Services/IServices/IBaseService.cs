@@ -5,7 +5,7 @@ namespace AccessControl_Web.Services.IServices
     public interface IBaseServices
     {
         ApiResponse<object> ResponseModel { get; set; }
-        Task<T> SendAsync<T>(ApiRequest apiRequest);
+        Task<T?> SendAsync<T>(ApiRequest apiRequest);
 
     }
 }

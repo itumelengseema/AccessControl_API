@@ -1,0 +1,76 @@
+@model IEnumerable<AccessControl_API.Models.DTO.UsersPerGroupDTO>
+
+@{
+    ViewData["Title"] = "Group Statistics";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-bar-chart"></i> Group Statistics</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Groups
+        </a>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card shadow">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Group Name</th>
+                                <th class="text-center">Number of Users</th>
+                                <th class="text-center">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var totalUsers = Model.Sum(g => g.UserCount);
+                            }
+                            @foreach (var group in Model.OrderByDescending(g => g.UserCount))
+                            {
+                                var percentage = totalUsers > 0 ? (group.UserCount * 100.0 / totalUsers) : 0;
+                                <tr>
+                                    <td>
+                                        <strong>@group.GroupName</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary rounded-pill">@group.UserCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 25px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: @percentage%" 
+                                                 aria-valuenow="@percentage" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                                @percentage.ToString("F1")%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th>Total</th>
+                                <th class="text-center">
+                                    <span class="badge bg-success rounded-pill">@totalUsers</span>
+                                </th>
+                                <th class="text-center">100%</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No group statistics available.
+        </div>
+    }
+</div>

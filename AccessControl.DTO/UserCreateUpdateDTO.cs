@@ -7,6 +7,10 @@
 
         public string LastName { get; set; } = null!;
 
+        public string Email { get; set; } = null!;
+
         public string IdentificationNumber { get; set; } = null!;
+
+        public int GroupId { get; set; }
     }
 }

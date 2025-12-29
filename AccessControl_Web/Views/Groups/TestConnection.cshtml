@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "API Connection Test";
+}
+
+<div class="container py-4">
+    <h2><i class="bi bi-plug"></i> API Connection Diagnostics</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-x-circle"></i> Connection Error</h5>
+            <p><strong>Error:</strong> @ViewBag.Error</p>
+            @if (ViewBag.StackTrace != null)
+            {
+                <details>
+                    <summary>Stack Trace</summary>
+                    <pre>@ViewBag.StackTrace</pre>
+                </details>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card shadow mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Connection Status</h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.Diagnostics != null)
+                {
+                    var diag = ViewBag.Diagnostics;
+                    <dl class="row">
+                        <dt class="col-sm-3">API Reachable:</dt>
+                        <dd class="col-sm-9">
+                            @if (diag.ApiReachable)
+                            {
+                                <span class="badge bg-success">? Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">? No</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Success:</dt>
+                        <dd class="col-sm-9">
+                            @if (diag.Success)
+                            {
+                                <span class="badge bg-success">? True</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">? False</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Status:</dt>
+                        <dd class="col-sm-9"><code>@diag.Status</code></dd>
+
+                        <dt class="col-sm-3">Message:</dt>
+                        <dd class="col-sm-9">@diag.Message</dd>
+
+                        <dt class="col-sm-3">Groups Count:</dt>
+                        <dd class="col-sm-9">@diag.DataCount</dd>
+
+                        @if (diag.Errors != null)
+                        {
+                            <dt class="col-sm-3">Errors:</dt>
+                            <dd class="col-sm-9"><pre>@diag.Errors</pre></dd>
+                        }
+                    </dl>
+                }
+            </div>
+        </div>
+
+        @if (ViewBag.RawResponse != null)
+        {
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Raw API Response</h5>
+                </div>
+                <div class="card-body">
+                    <pre><code>@ViewBag.RawResponse</code></pre>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Back to Groups
+        </a>
+        <a href="https://localhost:5153/scalar/v1" target="_blank" class="btn btn-info">
+            <i class="bi bi-book"></i> Open API Documentation
+        </a>
+    </div>
+</div>

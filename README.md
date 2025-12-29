@@ -1,284 +1,358 @@
-﻿# AccessControl API
+﻿# AccessControl System
 
-A Building Access Control System RESTful API built with ASP.NET Core 10 for managing users, groups, and permissions in a role-based access control (RBAC) architecture.
+A complete **Building Access Control System** with RESTful API and Web Application built with **ASP.NET Core (.NET 10)** for managing users, groups, permissions, and visitor access in a role-based access control (RBAC) architecture.
 
-## Description
+## 🌟 Features
 
-This API provides a comprehensive solution for managing building access control through a hierarchical permission system. Users are assigned to groups, and groups are granted specific permissions, enabling flexible and scalable access management. The system is designed to efficiently check whether a user has the necessary permissions to access specific resources or areas.
+### API Backend
+- **User Management** - Create, read, update, delete users with authentication
+- **Group Management** - Organize users into logical groups (Admin, Security, Employee, Visitor)
+- **Permission System** - Granular permissions with group-based access control
+- **Visitor Tracking** - Check-in/check-out system with active visitor monitoring
+- **JWT Authentication** - Secure token-based authentication
+- **AutoMapper** - Clean object mapping between DTOs and entities
+- **Interactive API Docs** - Scalar UI for testing endpoints
 
-## Features
+### Web Application
+- **Authentication** - Login/Register with session management
+- **Dashboard** - Real-time statistics and quick actions
+- **User CRUD** - Complete user management interface
+- **Group Management** - Create and manage user groups
+- **Visitor Check-In/Out** - Track active visitors with duration monitoring
+- **Responsive Design** - Bootstrap 5 with mobile support
 
-- **User Management**: Create and retrieve users with personal information
-- **Group Management**: Organize users into logical groups (e.g., Admin, Security, Visitor)
-- **Permission Management**: Define granular access permissions (e.g., Door Access, Camera Access)
-- **Access Verification**: Real-time permission checking for users
-- **Many-to-Many Relationships**: Users can belong to multiple groups; groups can have multiple permissions
-- **Entity Framework Core**: Code-first database approach with migrations
-- **RESTful API Design**: Clean, intuitive endpoint structure
-- **Interactive API Documentation**: Integrated Scalar UI for testing
-
-## Technology Stack
+## 🛠️ Technology Stack
 
 - **.NET 10**
-- **ASP.NET Core Web API**
+- **ASP.NET Core MVC / Razor Pages**
 - **Entity Framework Core 10**
 - **SQL Server Express**
+- **JWT Bearer Authentication**
+- **AutoMapper**
+- **BCrypt for Password Hashing**
+- **Bootstrap 5 + Bootstrap Icons**
 - **Scalar API Documentation**
-- **C# 14**
 
-## Database Design
-
-The system uses five main entities with the following structure:
-
-### Entities
-
-#### Users
-- `Id` (Guid, PK)
-- `Name` (string, required)
-- `Surname` (string, required)
-- `Email` (string, optional)
-- `PhoneNumber` (string, required)
-
-#### Groups
-- `Id` (Guid, PK)
-- `Name` (string, required)
-
-#### Permissions
-- `Id` (Guid, PK)
-- `Name` (string, required)
-
-#### UserGroups (Junction Table)
-- `UserId` (Guid, PK, FK)
-- `GroupId` (Guid, PK, FK)
-
-#### GroupPermissions (Junction Table)
-- `GroupId` (Guid, PK, FK)
-- `PermissionId` (Guid, PK, FK)
-
-### Entity Relationships
+## 📁 Project Structure
 
 ```
-User ←→ UserGroup ←→ Group ←→ GroupPermission ←→ Permission
+AccessControl/
+├── AccessControl_API/          # Backend API
+│   ├── Controllers/           # API endpoints
+│   ├── Services/             # Business logic
+│   ├── Data/                 # EF Core DbContext & Seeder
+│   ├── Models/               # Domain entities
+│   ├── Authorization/        # Permission handlers
+│   └── Utilities/           # Password hashing, JWT generation
+│
+├── AccessControl.DTO/         # Shared Data Transfer Objects
+│   ├── ApiResponse.cs
+│   ├── UserDTO.cs
+│   ├── GroupDTO.cs
+│   ├── VisitLogDTO.cs
+│   └── AuthDTOs.cs
+│
+└── AccessControl_Web/         # Frontend Web App
+    ├── Controllers/          # MVC controllers
+    ├── Views/               # Razor views
+    ├── Services/            # HTTP client services
+    └── Filters/            # Session authorization
 ```
 
-- A User can belong to multiple Groups
-- A Group can have multiple Users
-- A Group can have multiple Permissions
-- A Permission can be assigned to multiple Groups
-
-## API Endpoints
-
-### Users
-
-| Method | Endpoint | Description | Request Body |
-|--------|----------|-------------|--------------|
-| POST | `/api/users` | Create a new user | User object |
-| GET | `/api/users` | Get all users | - |
-
-### Groups
-
-| Method | Endpoint | Description | Request Body |
-|--------|----------|-------------|--------------|
-| POST | `/api/groups` | Create a new group | Group object |
-| GET | `/api/groups` | Get all groups | - |
-
-### Permissions
-
-| Method | Endpoint | Description | Request Body |
-|--------|----------|-------------|--------------|
-| POST | `/api/permissions` | Create a new permission | Permission object |
-| GET | `/api/permissions` | Get all permissions | - |
-
-### Access Control
-
-| Method | Endpoint | Description | Query Parameters |
-|--------|----------|-------------|------------------|
-| GET | `/api/access/check` | Check if a user has a specific permission | `userId` (Guid), `permission` (string) |
-
-### Sample Request Examples
-
-**Create User:**
-```json
-POST /api/users
-{
-  "name": "John",
-  "surname": "Doe",
-  "email": "john.doe@example.com",
-  "phoneNumber": "+1234567890"
-}
-```
-
-**Check Access:**
-```
-GET /api/access/check?userId=3fa85f64-5717-4562-b3fc-2c963f66afa6&permission=Door%20Access
-```
-
-## Seed Data
-
-The system can be initialized with default groups and permissions:
-
-### Default Groups
-- **Admin**: Full system access
-- **Security**: Access to security features
-- **Employee**: Standard building access
-- **Visitor**: Limited guest access
-
-### Default Permissions
-- **Door Access**: Physical door entry
-- **Camera Access**: Security camera viewing
-- **Admin Panel**: Administrative functions
-- **Parking Access**: Parking facility entry
-- **Conference Room**: Meeting room booking
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- SQL Server Express or SQL Server LocalDB
-- Git (for cloning the repository)
+- SQL Server Express or LocalDB
+- Visual Studio 2022 or VS Code
 
 ### Installation
 
-1. **Clone the repository:**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/itumelengseema/AccessControl_API.git
    cd AccessControl_API
    ```
 
-2. **Update the connection string:**
+2. **Configure Database**
    
-   Open `appsettings.json` and verify the connection string matches your SQL Server instance:
+   Update `appsettings.json` in the API project:
    ```json
    {
      "ConnectionStrings": {
-       "DefaultConnection": "Server=YOUR_SERVER\\sqlexpress;Database=AccessControl;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+       "DefaultConnection": "Server=localhost\\sqlexpress;Database=AccessControl;Trusted_Connection=True;TrustServerCertificate=True"
      }
    }
    ```
 
-3. **Restore dependencies:**
-   ```bash
-   dotnet restore
-   ```
-
-4. **Apply database migrations:**
+3. **Apply Migrations**
    ```bash
    dotnet ef database update
    ```
 
-5. **Run the application:**
+4. **Start Both Projects**
+
+   **Option A: Visual Studio**
+   - Right-click Solution → Set Startup Projects
+   - Select "Multiple startup projects"
+   - Set both `AccessControl_API` and `AccessControl_Web` to "Start"
+   - Press F5
+
+   **Option B: Command Line**
    ```bash
+   # Terminal 1 - API
+   dotnet run --project AccessControl_API.csproj --launch-profile http
+
+   # Terminal 2 - Web
+   cd AccessControl_Web
    dotnet run
    ```
 
-6. **Access the API:**
-   - API Base URL: `https://localhost:5001` or `http://localhost:5000`
-   - Interactive Documentation: `https://localhost:5001/scalar/v1` (when running in Development mode)
+5. **Access the Applications**
+   - **API**: http://localhost:5000/scalar/v1
+   - **Web App**: http://localhost:5208
 
-## Usage
+## 🔑 Default Credentials
 
-### Using Scalar UI (Recommended)
+The system creates a default admin user on first run:
 
-1. Navigate to `https://localhost:5001/scalar/v1` in your browser
-2. Explore available endpoints in the interactive documentation
-3. Test endpoints directly from the UI with sample requests
+```
+Email:    admin@access.local
+Password: Admin@123
+```
 
-### Using cURL
+**Login at:** http://localhost:5208/Auth/Login
 
-**Create a user:**
+## 📊 Database Schema
+
+### Core Entities
+
+- **Users** - User accounts with authentication
+- **Groups** - Organizational groups (Admin, Security, etc.)
+- **Permissions** - Access permissions
+- **VisitLogs** - Check-in/check-out records
+- **UserGroups** - Many-to-many: Users ↔ Groups
+- **GroupPermissions** - Many-to-many: Groups ↔ Permissions
+
+### Default Data
+
+**Groups:**
+- Admin (full access)
+- Security (limited access)
+
+**Permissions:**
+- MANAGE_USERS
+- CHECK_IN_VISITOR
+- CHECK_OUT_VISITOR
+- VIEW_ACTIVE_VISITORS
+
+## 🌐 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login (returns JWT) |
+
+### Users
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/users` | Get all users |
+| GET | `/api/users/count` | Get user count |
+| POST | `/api/users` | Create user |
+| PUT | `/api/users/{id}` | Update user |
+| DELETE | `/api/users/{id}` | Delete user |
+
+### Groups
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/groups` | Get all groups |
+| GET | `/api/groups/users-count` | Users per group |
+| POST | `/api/groups` | Create group |
+
+### Visit Logs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/vist-logs/active` | Get active visitors |
+| POST | `/api/vist-logs/check-in` | Check in visitor |
+| POST | `/api/vist-logs/check-out/{id}` | Check out visitor |
+
+## 🎨 Web Application Features
+
+### Dashboard
+- Total users count
+- Active visitors count
+- Groups count
+- Quick action buttons
+
+### User Management
+- List all users
+- Create new users
+- Edit user details
+- Delete users
+
+### Group Management
+- View all groups
+- Create new groups
+- View group statistics
+- User distribution charts
+
+### Visitor Tracking
+- Active visitors list
+- Check-in form with car registration
+- One-click check-out
+- Duration tracking
+- Real-time statistics
+
+## 🔧 Configuration
+
+### API Settings (`appsettings.json`)
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost\\sqlexpress;Database=AccessControl;..."
+  },
+  "JwtSettings": {
+    "Key": "YourSuperSecretKeyHere",
+    "Issuer": "AccessControlAPI",
+    "Audience": "AccessControlWeb"
+  }
+}
+```
+
+### Web App Settings (`AccessControl_Web/appsettings.json`)
+```json
+{
+  "ServiceUrls": {
+    "AccessControlAPI": "http://localhost:5000"
+  }
+}
+```
+
+## 🧪 Testing
+
+### Using Scalar UI
+1. Navigate to http://localhost:5000/scalar/v1
+2. Test endpoints interactively
+3. View request/response examples
+
+### Sample API Calls
+
+**Register:**
 ```bash
-curl -X POST https://localhost:5001/api/users \
+curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Jane",
-    "surname": "Smith",
-    "email": "jane.smith@example.com",
-    "phoneNumber": "+1234567890"
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "identificationNumber": "123456",
+    "password": "Test123!",
+    "groupId": 1
   }'
 ```
 
-**Check access:**
+**Login:**
 ```bash
-curl -X GET "https://localhost:5001/api/access/check?userId=<USER_ID>&permission=Door%20Access"
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@access.local",
+    "password": "Admin@123"
+  }'
 ```
 
-### Using Postman
+## 📝 Important Notes
 
-1. Import the API by using the base URL: `https://localhost:5001`
-2. Create requests for each endpoint
-3. Use JSON format for POST request bodies
+### Session Management
+- 30-minute session timeout
+- Token stored in session
+- Automatic logout on expiry
 
-## Project Structure
+### Security
+- Passwords hashed with BCrypt
+- JWT token authentication
+- Session-based authorization
+- CSRF protection on forms
 
+### CORS Configuration
+Configured to allow requests from:
+- https://localhost:7154
+- http://localhost:5154
+- http://localhost:5000
+
+## 🐛 Troubleshooting
+
+### Can't Login?
+1. **Verify API is running:** http://localhost:5000/scalar/v1
+2. **Check credentials:** `admin@access.local` / `Admin@123`
+3. **View logs:** Check terminal for error messages
+
+### Database Issues?
+```bash
+# Reset database
+dotnet ef database drop --force
+dotnet ef database update
+
+# Restart API to reseed
+dotnet run --project AccessControl_API.csproj
 ```
-AccessControl_API/
-├── Controllers/
-│   ├── UserController.cs
-│   ├── AccessControll.cs
-│   └── [Additional Controllers]
-├── Models/
-│   ├── User.cs
-│   ├── Group.cs
-│   ├── Permission.cs
-│   ├── UserGroup.cs
-│   └── GroupPermission.cs
-├── Data/
-│   └── AppDbContext.cs
-├── Migrations/
-│   └── [EF Core Migrations]
-├── appsettings.json
-├── Program.cs
-└── AccessControl_API.csproj
+
+### SSL Errors?
+- API and Web must use same protocol (both HTTP or both HTTPS)
+- For HTTP: Use `--launch-profile http` when starting API
+- For HTTPS: Run `dotnet dev-certs https --trust`
+
+## 📚 Additional Documentation
+
+- **[Quick Start Guide](QUICK_START_GUIDE.md)** - Detailed setup instructions
+- **[Project Status](PROJECT_STATUS.md)** - Current implementation status
+- **[Default Credentials](DEFAULT_LOGIN_CREDENTIALS.md)** - Admin login info
+
+## 🎯 Future Enhancements
+
+- [ ] Email verification
+- [ ] Password reset functionality
+- [ ] User profile management
+- [ ] Advanced search and filtering
+- [ ] Report generation (PDF/Excel)
+- [ ] Real-time notifications
+- [ ] Audit logging
+- [ ] Role hierarchy
+- [ ] API rate limiting
+- [ ] Dockerization
+
+## 👥 Contributing
+
+This project was developed as an educational/assessment project. For suggestions:
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+
+
+
+---
+
+## ⚡ Quick Commands Reference
+
+```bash
+# Start API (HTTP)
+dotnet run --project AccessControl_API.csproj --launch-profile http
+
+# Start Web App
+cd AccessControl_Web && dotnet run
+
+# Database migrations
+dotnet ef migrations add MigrationName
+dotnet ef database update
+dotnet ef database drop --force
+
+# Build & clean
+dotnet clean
+dotnet build
+dotnet restore
 ```
 
-## Notes
-
-### Scope and Limitations
-
-This project was developed as an **intern-level assessment** and focuses on core functionality:
-
-- ✅ **Implemented**: CRUD operations, relationship mapping, access checking
-- ⚠️ **Not Implemented**: 
-  - Authentication/Authorization (JWT, Identity)
-  - Input validation and error handling
-  - Logging and monitoring
-  - Unit and integration tests
-  - Data seeding on startup
-  - Pagination for list endpoints
-  - Soft delete functionality
-  - Audit trails
-
-### Development Context
-
-This API demonstrates fundamental understanding of:
-- RESTful API design principles
-- Entity Framework Core and database relationships
-- ASP.NET Core dependency injection
-- Many-to-many relationship implementation
-- Code-first database migrations
-
-## Future Enhancements
-
-- Implement JWT authentication
-- Add comprehensive input validation using FluentValidation
-- Implement repository pattern and unit of work
-- Add logging with Serilog
-- Create unit and integration tests
-- Implement CQRS pattern with MediatR
-- Add API versioning
-- Implement caching strategies
-
-## Contributing
-
-This is an assessment project. For feedback or suggestions, please contact the repository owner.
-
-## License
-
-This project is developed for educational and assessment purposes.
-
-## Author
-
-**Itumeleng Seema**
-- GitHub: [@itumelengseema](https://github.com/itumelengseema)
-
+---

@@ -1,8 +1,178 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
+    var userName = ViewBag.UserName as string ?? "User";
+    var userCount = ViewBag.UserCount;
+    var groupCount = ViewBag.GroupCount;
+    var activeVisitorCount = ViewBag.ActiveVisitorCount;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">Welcome back, @userName!</h1>
+            <p class="text-muted">Here's what's happening with your access control system today.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-primary border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-muted small mb-1">Total Users</div>
+                            <div class="h2 mb-0">@userCount</div>
+                        </div>
+                        <div class="ms-3">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-controller="Users" asp-action="Index" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-eye"></i> View All Users
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-success border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-muted small mb-1">Active Visitors</div>
+                            <div class="h2 mb-0">@activeVisitorCount</div>
+                        </div>
+                        <div class="ms-3">
+                            <i class="bi bi-door-open-fill text-success" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-controller="VisitLogs" asp-action="Index" class="btn btn-sm btn-outline-success w-100">
+                        <i class="bi bi-eye"></i> View Active Visitors
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-info border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-muted small mb-1">User Groups</div>
+                            <div class="h2 mb-0">@groupCount</div>
+                        </div>
+                        <div class="ms-3">
+                            <i class="bi bi-diagram-3-fill text-info" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a asp-controller="Groups" asp-action="Index" class="btn btn-sm btn-outline-info w-100">
+                        <i class="bi bi-eye"></i> View All Groups
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-start border-warning border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="text-muted small mb-1">System Status</div>
+                            <div class="h5 mb-0 text-success">
+                                <i class="bi bi-circle-fill"></i> Online
+                            </div>
+                        </div>
+                        <div class="ms-3">
+                            <i class="bi bi-shield-check text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="text-muted small">All systems operational</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning-fill"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a asp-controller="VisitLogs" asp-action="CheckIn" class="btn btn-lg btn-success w-100">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <div class="mt-2">Check In Visitor</div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Users" asp-action="Create" class="btn btn-lg btn-primary w-100">
+                                <i class="bi bi-person-plus"></i>
+                                <div class="mt-2">Add New User</div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Groups" asp-action="Create" class="btn btn-lg btn-info w-100">
+                                <i class="bi bi-diagram-3"></i>
+                                <div class="mt-2">Create Group</div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Groups" asp-action="Statistics" class="btn btn-lg btn-warning w-100">
+                                <i class="bi bi-bar-chart"></i>
+                                <div class="mt-2">View Statistics</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> System Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Access Control</h6>
+                                <p class="text-muted small mb-0">Monitor visitor access in real-time</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Secure & Reliable</h6>
+                                <p class="text-muted small mb-0">JWT-based authentication system</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="bi bi-graph-up text-info" style="font-size: 2rem;"></i>
+                                <h6 class="mt-2">Analytics Ready</h6>
+                                <p class="text-muted small mb-0">Track and analyze visitor patterns</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

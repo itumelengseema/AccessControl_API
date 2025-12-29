@@ -43,21 +43,33 @@ namespace AccessControl_API.Controllers
             _db.VisitLogs.Add(VistLog);
             await _db.SaveChangesAsync();
 
-            return Ok(ApiResponse<VisitLogResponseDTO>.CreatedResponse(_mapper.Map<VisitLogResponseDTO>(VistLog), "Vistor Checked In Successfully"));
+            // Load user details for response
+            var visitLogWithUser = await _db.VisitLogs
+                .Include(v => v.User)
+                .FirstOrDefaultAsync(v => v.Id == VistLog.Id);
+
+            var responseDTO = _mapper.Map<VisitLogResponseDTO>(visitLogWithUser);
+
+            return Ok(ApiResponse<VisitLogResponseDTO>.CreatedResponse(responseDTO, "Vistor Checked In Successfully"));
         }
 
         [HttpPost("check-out/{visitLogId}")]
         public async Task<ActionResult<ApiResponse<VisitLogResponseDTO>>> CheckOut(int visitLogId)
         {
-            var visitLog = await _db.VisitLogs.FirstOrDefaultAsync(v => v.Id == visitLogId && v.IsActive);
+            var visitLog = await _db.VisitLogs
+                .Include(v => v.User)
+                .FirstOrDefaultAsync(v => v.Id == visitLogId && v.IsActive);
+                
             if (visitLog == null)
             {
                 return NotFound(ApiResponse<VisitLogResponseDTO>.BadRequestResponse("Active visit log not found."));
             }
+            
             visitLog.CheckOutTime = DateTime.UtcNow;
             visitLog.IsActive = false;
             _db.VisitLogs.Update(visitLog);
             await _db.SaveChangesAsync();
+            
             return Ok(ApiResponse<VisitLogResponseDTO>.SuccessResponse(_mapper.Map<VisitLogResponseDTO>(visitLog), "Vistor Checked Out Successfully"));
         }
 
@@ -65,9 +77,12 @@ namespace AccessControl_API.Controllers
         public async Task<ActionResult<ApiResponse<List<VisitLogResponseDTO>>>> ActiveVisitors()
         {
             var activeVisitLogs = await _db.VisitLogs
+                .Include(v => v.User) // Include user details
                 .Where(v => v.IsActive)
                 .ToListAsync();
+                
             var visitLogDTOs = _mapper.Map<List<VisitLogResponseDTO>>(activeVisitLogs);
+            
             return Ok(ApiResponse<List<VisitLogResponseDTO>>.SuccessResponse(visitLogDTOs, "Active visit logs retrieved successfully."));
         }
     }

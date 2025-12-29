@@ -17,6 +17,23 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Key"]!);
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebApp", policy =>
+    {
+        policy.WithOrigins(
+            "https://localhost:7154", 
+            "http://localhost:5154",
+            "https://localhost:7000",
+            "http://localhost:5000"
+        )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Configure JWT Authentication 
 builder.Services.AddAuthentication(options =>
 {
@@ -82,16 +99,23 @@ builder.Services.AddAuthorization(options =>
 });
 
 
-// Configer AutoMapper For Object Mapping
+// Configure AutoMapper For Object Mapping
 builder.Services.AddAutoMapper(o =>
 {
     // Visit / Access Log mappings
     o.CreateMap<VisitLog, CheckInDTO>().ReverseMap();
-    o.CreateMap<VisitLog, VisitLogResponseDTO>().ReverseMap();
+    o.CreateMap<VisitLog, VisitLogResponseDTO>()
+        .ForMember(dest => dest.UserFirstName, opt => opt.MapFrom(src => src.User.FirstName))
+        .ForMember(dest => dest.UserLastName, opt => opt.MapFrom(src => src.User.LastName))
+        .ForMember(dest => dest.UserEmail, opt => opt.MapFrom(src => src.User.Email))
+        .ForMember(dest => dest.UserIdentificationNumber, opt => opt.MapFrom(src => src.User.IdentificationNumber));
 
     // User mappings
-    o.CreateMap<User, UserDTO>().ReverseMap();
+    o.CreateMap<User, UserDTO>()
+        .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.UserGroups.FirstOrDefault() != null ? src.UserGroups.FirstOrDefault()!.Group.Name : ""))
+        .ForMember(dest => dest.GroupId, opt => opt.MapFrom(src => src.UserGroups.FirstOrDefault() != null ? src.UserGroups.FirstOrDefault()!.GroupId : 0));
     o.CreateMap<User, UserCreateUpdateDTO>().ReverseMap();
+    o.CreateMap<UserCreateUpdateDTO, User>();
 
     // Group mappings
     o.CreateMap<Group, GroupDTO>().ReverseMap();
@@ -108,10 +132,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
+
     // Apply migrations
     context.Database.Migrate();
-    
+
     // Seed data (only runs if database is empty)
     DbSeeder.Seed(context);
 }
@@ -125,12 +149,11 @@ if (app.Environment.IsDevelopment())
     {
         options.Title = "AccessControl API Documentation";
         options.WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-    }
-
-    );
+    });
 }
 
-app.UseHttpsRedirection();
+// Enable CORS
+app.UseCors("AllowWebApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -138,23 +161,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-static async Task SeedDataAsync(WebApplication app)
-{
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    // Apply any pending migrations
-    try
-    {
-        var connectionString = dbContext.Database.GetConnectionString();
-
-        Console.WriteLine("Applying migrations to database: " + connectionString);
-        await dbContext.Database.MigrateAsync();
-
-
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("An error occurred while applying migrations: " + ex.Message);
-    }
-}
