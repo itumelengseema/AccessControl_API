@@ -1,0 +1,232 @@
+@{
+    ViewData["Title"] = "Login Diagnostic";
+}
+
+<div class="container py-4">
+    <h2><i class="bi bi-bug"></i> Login Diagnostic Tool</h2>
+    <p class="text-muted">Use this page to diagnose login issues</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Web App Configuration</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.Diagnostics != null)
+                    {
+                        var diag = ViewBag.Diagnostics;
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">API URL:</dt>
+                            <dd class="col-sm-7"><code>@diag.ApiUrl</code></dd>
+
+                            <dt class="col-sm-5">Session Available:</dt>
+                            <dd class="col-sm-7">
+                                @if (diag.SessionAvailable)
+                                {
+                                    <span class="badge bg-success">? Yes</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">? No</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-5">Current Host:</dt>
+                            <dd class="col-sm-7"><code>@diag.Host</code></dd>
+
+                            <dt class="col-sm-5">Protocol:</dt>
+                            <dd class="col-sm-7">
+                                <code>@diag.Scheme</code>
+                                @if (diag.IsHttps)
+                                {
+                                    <span class="badge bg-success">HTTPS</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">HTTP</span>
+                                }
+                            </dd>
+                        </dl>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">API Connection Status</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">API Reachable:</dt>
+                        <dd class="col-sm-7">
+                            @if (ViewBag.ApiConnected == true)
+                            {
+                                <span class="badge bg-success">? Yes</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">? No</span>
+                            }
+                        </dd>
+
+                        @if (ViewBag.ApiConnected == true)
+                        {
+                            <dt class="col-sm-5">API Response:</dt>
+                            <dd class="col-sm-7"><code>@ViewBag.ApiResponse</code></dd>
+
+                            <dt class="col-sm-5">API Success:</dt>
+                            <dd class="col-sm-7">
+                                @if (ViewBag.ApiSuccess)
+                                {
+                                    <span class="badge bg-success">? True</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">False</span>
+                                }
+                            </dd>
+                        }
+                        else if (ViewBag.ApiError != null)
+                        {
+                            <dt class="col-sm-5">Error:</dt>
+                            <dd class="col-sm-7">
+                                <div class="alert alert-danger mb-0">
+                                    <small>@ViewBag.ApiError</small>
+                                </div>
+                            </dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="bi bi-list-check"></i> Troubleshooting Checklist</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Prerequisites:</h6>
+                    <ul class="list-unstyled">
+                        <li>
+                            @if (ViewBag.ApiConnected == true)
+                            {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                            API is running
+                        </li>
+                        <li>
+                            @if (ViewBag.Diagnostics?.SessionAvailable == true)
+                            {
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-circle-fill text-danger"></i>
+                            }
+                            Session is configured
+                        </li>
+                        <li>
+                            <i class="bi bi-question-circle text-muted"></i>
+                            Database has admin user
+                        </li>
+                        <li>
+                            <i class="bi bi-question-circle text-muted"></i>
+                            Using correct credentials
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>Quick Actions:</h6>
+                    <div class="d-grid gap-2">
+                        <a href="@ViewBag.Diagnostics?.ApiUrl/scalar/v1" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-box-arrow-up-right"></i> Open API Documentation
+                        </a>
+                        <a asp-action="Login" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-arrow-left"></i> Try Login Again
+                        </a>
+                        <button onclick="testLogin()" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-play"></i> Test Login API
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mt-3">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Default Admin Credentials</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Email:</strong></p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="admin@access.local" readonly id="adminEmail">
+                        <button class="btn btn-outline-secondary" onclick="copyToClipboard('adminEmail')">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Password:</strong></p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="Admin@123" readonly id="adminPassword">
+                        <button class="btn btn-outline-secondary" onclick="copyToClipboard('adminPassword')">
+                            <i class="bi bi-clipboard"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(elementId) {
+        var element = document.getElementById(elementId);
+        element.select();
+        document.execCommand('copy');
+        alert('Copied to clipboard!');
+    }
+
+    async function testLogin() {
+        const apiUrl = '@ViewBag.Diagnostics?.ApiUrl';
+        const loginUrl = apiUrl + '/api/auth/login';
+        
+        const credentials = {
+            email: 'admin@access.local',
+            password: 'Admin@123'
+        };
+
+        try {
+            const response = await fetch(loginUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(credentials)
+            });
+
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                alert('? Login API Test PASSED!\n\nAPI is working correctly.\nMessage: ' + data.message);
+            } else {
+                alert('? Login API Test FAILED!\n\nStatus: ' + response.status + '\nMessage: ' + data.message);
+            }
+        } catch (error) {
+            alert('? Cannot reach API!\n\nError: ' + error.message + '\n\nMake sure API is running on ' + apiUrl);
+        }
+    }
+</script>

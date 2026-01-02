@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-exclamation text-danger" style="font-size: 5rem;"></i>
+                    </div>
+                    <h1 class="display-4 text-danger mb-3">Access Denied</h1>
+                    <p class="lead text-muted mb-4">
+                        You don't have permission to access this resource.
+                    </p>
+                    <p class="text-muted">
+                        <i class="bi bi-info-circle me-2"></i>
+                        If you believe this is an error, please contact your administrator.
+                    </p>
+                    <div class="mt-4">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg me-2">
+                            <i class="bi bi-house-door me-2"></i>
+                            Go to Dashboard
+                        </a>
+                        <a asp-controller="Auth" asp-action="Logout" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-box-arrow-right me-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4 border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Common Reasons
+                    </h6>
+                    <ul class="list-unstyled text-start text-muted small">
+                        <li class="mb-2">
+                            <i class="bi bi-dash-circle text-warning me-2"></i>
+                            Your user role doesn't have the required permission
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-dash-circle text-warning me-2"></i>
+                            You're trying to access an admin-only feature
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-dash-circle text-warning me-2"></i>
+                            Your session may have expired - try logging out and back in
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

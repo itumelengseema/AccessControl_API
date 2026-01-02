@@ -61,30 +61,5 @@ namespace AccessControl_API.Controllers
             
             return Ok(ApiResponse<LoginResponseDTO>.SuccessResponse(result, "Login successful"));
         }
-
-        // Diagnostic endpoint - Remove in production
-        [HttpGet("debug/check-email/{email}")]
-        public async Task<IActionResult> CheckEmail(string email)
-        {
-            var exists = await _authService.IsEmailExistAsync(email);
-            var userCount = await _db.Users.CountAsync();
-            var users = await _db.Users.Select(u => new { u.Id, u.Email }).ToListAsync();
-            
-            return Ok(new 
-            { 
-                email, 
-                exists, 
-                totalUsers = userCount,
-                existingEmails = users 
-            });
-        }
-
-        // Diagnostic endpoint - Remove in production
-        [HttpGet("debug/groups")]
-        public async Task<IActionResult> GetGroups()
-        {
-            var groups = await _db.Groups.Select(g => new { g.Id, g.Name }).ToListAsync();
-            return Ok(new { groups, count = groups.Count });
-        }
     }
 }

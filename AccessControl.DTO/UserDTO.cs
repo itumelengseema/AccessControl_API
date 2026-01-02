@@ -11,7 +11,10 @@
 
         public string Email { get; set; } = null!;
 
+        public string IdentificationNumber { get; set; } = null!;
 
+        public int GroupId { get; set; }
 
+        public string GroupName { get; set; } = string.Empty;
     }
 }

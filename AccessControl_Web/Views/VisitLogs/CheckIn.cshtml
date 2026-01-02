@@ -1,0 +1,205 @@
+@{
+    ViewData["Title"] = "Check In Visitor";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Error/Success Messages -->
+            @if (ViewData.ModelState.Any(x => x.Value.Errors.Any()))
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Check-In Failed</h5>
+                    <ul class="mb-0">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-plus-fill"></i> Check In Visitor</h4>
+                    <small>No dropdown lists - just enter visitor details directly!</small>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="CheckIn" method="post" id="checkInForm">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-person"></i> First Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       name="VisitorFirstName" 
+                                       id="VisitorFirstName"
+                                       placeholder="Enter first name" 
+                                       required 
+                                       autofocus />
+                                <small class="text-muted">Visitor's first name</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-person"></i> Last Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       name="VisitorLastName" 
+                                       id="VisitorLastName"
+                                       placeholder="Enter last name" 
+                                       required />
+                                <small class="text-muted">Visitor's last name</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-envelope"></i> Email
+                                </label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       name="VisitorEmail" 
+                                       id="VisitorEmail"
+                                       placeholder="visitor@example.com" />
+                                <small class="text-muted">Optional - for contact purposes</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-telephone"></i> Phone Number
+                                </label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       name="VisitorPhone" 
+                                       id="VisitorPhone"
+                                       placeholder="+27 123 456 789" />
+                                <small class="text-muted">Optional - for contact purposes</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-card-text"></i> ID Number / Passport <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       name="VisitorIdNumber" 
+                                       id="VisitorIdNumber"
+                                       placeholder="ID or passport number" 
+                                       required />
+                                <small class="text-muted"><strong>Required</strong> - System will detect returning visitors</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-car-front"></i> Car Registration
+                                </label>
+                                <input type="text"
+                                       class="form-control" 
+                                       name="CarRegistration"
+                                       id="CarRegistration"
+                                       placeholder="ABC 123 GP" />
+                                <small class="text-muted">If visitor has a vehicle</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-clipboard-check"></i> Purpose of Visit <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select form-select-lg" name="PurposeOfVisit" id="PurposeOfVisit" required>
+                                <option value="">-- Select purpose --</option>
+                                <option value="Meeting">?? Meeting</option>
+                                <option value="Delivery">?? Delivery</option>
+                                <option value="Interview">?? Interview</option>
+                                <option value="Maintenance">?? Maintenance</option>
+                                <option value="Guest">?? Guest Visit</option>
+                                <option value="Other">?? Other</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-building"></i> Person to Visit
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="PersonToVisit" 
+                                   id="PersonToVisit"
+                                   placeholder="Name of employee or department" />
+                            <small class="text-muted">Who are they visiting?</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-journal-text"></i> Additional Notes
+                            </label>
+                            <textarea class="form-control" 
+                                      name="Notes" 
+                                      id="Notes"
+                                      rows="3" 
+                                      placeholder="Any additional information..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                                <i class="bi bi-check-circle"></i> Check In Visitor
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Active Visitors
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow mt-3">
+                <div class="card-body bg-light">
+                    <h6 class="mb-2"><i class="bi bi-lightbulb-fill text-warning"></i> Quick Tips:</h6>
+                    <ul class="mb-0 small">
+                        <li><strong>New visitors:</strong> Just fill in the form - system creates them automatically</li>
+                        <li><strong>Returning visitors:</strong> System detects them by ID number</li>
+                        <li><strong>Required fields:</strong> First Name, Last Name, ID Number, and Purpose</li>
+                        <li><strong>No dropdowns!</strong> No need to search through thousands of names</li>
+                        <li><strong>Instant tracking:</strong> All visitor data is logged for security</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Add loading state to form submission
+        document.getElementById('checkInForm').addEventListener('submit', function() {
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+        });
+
+        // Auto-uppercase car registration
+        document.getElementById('CarRegistration')?.addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+
+        // Log form values on submit for debugging
+        document.getElementById('checkInForm').addEventListener('submit', function(e) {
+            console.log('Form submission data:', {
+                firstName: document.getElementById('VisitorFirstName').value,
+                lastName: document.getElementById('VisitorLastName').value,
+                idNumber: document.getElementById('VisitorIdNumber').value,
+                purpose: document.getElementById('PurposeOfVisit').value
+            });
+        });
+    </script>
+}
