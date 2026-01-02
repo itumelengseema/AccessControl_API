@@ -38,8 +38,12 @@ namespace AccessControl_API.Services
         {
             try
             {
-                // Find user by email
+                // Find user by email with groups and permissions
                 var user = await _db.Users
+                    .Include(u => u.UserGroups)
+                        .ThenInclude(ug => ug.Group)
+                            .ThenInclude(g => g.GroupPermissions)
+                                .ThenInclude(gp => gp.Permission)
                     .FirstOrDefaultAsync(u => u.Email == loginRequestDTO.Email);
 
                 if (user == null)
@@ -53,14 +57,22 @@ namespace AccessControl_API.Services
                     return null; // Invalid password
                 }
 
+                // Get user permissions
+                var permissions = user.UserGroups
+                    .SelectMany(ug => ug.Group.GroupPermissions)
+                    .Select(gp => gp.Permission.Name)
+                    .Distinct()
+                    .ToList();
+
                 // Generate JWT token
                 var token = _jwtTokenGenerator.GenerateToken(user);
 
-                // Return login response with user data and token
+                // Return login response with user data, token, and permissions
                 return new LoginResponseDTO
                 {
                     User = _mapper.Map<UserDTO>(user),
-                    Token = token
+                    Token = token,
+                    Permissions = permissions
                 };
             }
             catch (Exception)

@@ -40,6 +40,11 @@ namespace AccessControl_Web.Controllers
             return View();
         }
 
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();

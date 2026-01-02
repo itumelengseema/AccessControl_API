@@ -2,6 +2,7 @@ using AccessControl_API.Models.DTO;
 using AccessControl_Web.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace AccessControl_Web.Controllers
 {
@@ -59,11 +60,18 @@ namespace AccessControl_Web.Controllers
                     HttpContext.Session.SetString("Token", response.Data.Token);
                     HttpContext.Session.SetString("UserEmail", response.Data.User.Email);
                     HttpContext.Session.SetString("UserName", $"{response.Data.User.FirstName} {response.Data.User.LastName}");
+                    HttpContext.Session.SetString("UserGroup", response.Data.User.GroupName);
                     HttpContext.Session.SetInt32("UserId", response.Data.User.Id);
+                    HttpContext.Session.SetInt32("GroupId", response.Data.User.GroupId);
 
-                    _logger.LogInformation("User {Email} logged in successfully", model.Email);
-                    TempData["Success"] = "Login successful!";
+                    // Store permissions in session as JSON
+                    var permissionsJson = JsonSerializer.Serialize(response.Data.Permissions);
+                    HttpContext.Session.SetString("UserPermissions", permissionsJson);
 
+                    _logger.LogInformation("User {Email} logged in successfully with {PermissionCount} permissions: {Permissions}", 
+                        model.Email, response.Data.Permissions.Count, string.Join(", ", response.Data.Permissions));
+                    
+                    TempData["Success"] = $"Welcome back, {response.Data.User.FirstName}!";
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);

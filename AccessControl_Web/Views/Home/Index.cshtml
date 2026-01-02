@@ -1,178 +1,500 @@
-﻿@{
+﻿@using AccessControl_Web.Helpers
+@using AccessControl_Web.Filters
+@{
     ViewData["Title"] = "Dashboard";
     var userName = ViewBag.UserName as string ?? "User";
     var userCount = ViewBag.UserCount;
     var groupCount = ViewBag.GroupCount;
     var activeVisitorCount = ViewBag.ActiveVisitorCount;
+    
+    // Get user permissions
+    var canManageUsers = ViewContext.HasPermission(PermissionHelper.MANAGE_USERS);
+    var canCheckInVisitor = ViewContext.HasPermission(PermissionHelper.CHECK_IN_VISITOR);
+    var canCheckOutVisitor = ViewContext.HasPermission(PermissionHelper.CHECK_OUT_VISITOR);
+    var canViewVisitors = ViewContext.HasPermission(PermissionHelper.VIEW_ACTIVE_VISITORS);
 }
 
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h1 class="display-5">Welcome back, @userName!</h1>
-            <p class="text-muted">Here's what's happening with your access control system today.</p>
+<style>
+    /* Modern Dashboard Styling */
+    .dashboard-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card {
+        border-radius: 15px;
+        border: none;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+
+    .stat-card.primary::before { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .stat-card.success::before { background: linear-gradient(135deg, #84fab0, #8fd3f4); }
+    .stat-card.info::before { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+    .stat-card.warning::before { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .stat-card:hover::before {
+        width: 8px;
+    }
+
+    .stat-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .stat-icon.primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .stat-icon.success {
+        background: linear-gradient(135deg, #84fab0, #8fd3f4);
+        color: #0d5f3f;
+    }
+
+    .stat-icon.info {
+        background: linear-gradient(135deg, #a8edea, #fed6e3);
+        color: #0c5460;
+    }
+
+    .stat-icon.warning {
+        background: linear-gradient(135deg, #ffecd2, #fcb69f);
+        color: #856404;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .action-card {
+        border-radius: 15px;
+        border: none;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: block;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .action-card:hover::before {
+        left: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .action-card.success {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+    }
+
+    .action-card.primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .action-card.info {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+    }
+
+    .action-card.warning {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+
+    .action-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+
+    .action-card:hover .action-icon {
+        animation: bounce 0.6s;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .section-title {
+        position: relative;
+        padding-left: 20px;
+        margin-bottom: 1.5rem;
+    }
+
+    .section-title::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 5px;
+        height: 30px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 3px;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.6s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+        .dashboard-hero {
+            padding: 1.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        color: #6c757d;
+    }
+
+    .footer-btn {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .footer-btn:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="container-fluid py-4 fade-in">
+    <!-- Hero Section -->
+    <div class="dashboard-hero">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-2">Welcome back, @userName! 👋</h1>
+                <p class="lead mb-0 opacity-90">Here's what's happening with your access control system today.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <div class="badge-status">
+                    <i class="bi bi-clock me-2"></i>
+                    <span id="currentTime"></span>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-start border-primary border-4 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <div class="text-muted small mb-1">Total Users</div>
-                            <div class="h2 mb-0">@userCount</div>
-                        </div>
-                        <div class="ms-3">
-                            <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <a asp-controller="Users" asp-action="Index" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="bi bi-eye"></i> View All Users
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-start border-success border-4 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <div class="text-muted small mb-1">Active Visitors</div>
-                            <div class="h2 mb-0">@activeVisitorCount</div>
-                        </div>
-                        <div class="ms-3">
-                            <i class="bi bi-door-open-fill text-success" style="font-size: 3rem;"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <a asp-controller="VisitLogs" asp-action="Index" class="btn btn-sm btn-outline-success w-100">
-                        <i class="bi bi-eye"></i> View Active Visitors
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-start border-info border-4 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <div class="text-muted small mb-1">User Groups</div>
-                            <div class="h2 mb-0">@groupCount</div>
-                        </div>
-                        <div class="ms-3">
-                            <i class="bi bi-diagram-3-fill text-info" style="font-size: 3rem;"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <a asp-controller="Groups" asp-action="Index" class="btn btn-sm btn-outline-info w-100">
-                        <i class="bi bi-eye"></i> View All Groups
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card border-start border-warning border-4 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <div class="text-muted small mb-1">System Status</div>
-                            <div class="h5 mb-0 text-success">
-                                <i class="bi bi-circle-fill"></i> Online
+    <div class="row g-4 mb-5">
+        @if (canManageUsers)
+        {
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card primary shadow h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="flex-grow-1">
+                                <div class="stat-label mb-2">Total Users</div>
+                                <div class="stat-value">@userCount</div>
+                                <small class="text-muted">
+                                    <i class="bi bi-arrow-up text-success"></i> Active accounts
+                                </small>
+                            </div>
+                            <div class="stat-icon primary">
+                                <i class="bi bi-people-fill"></i>
                             </div>
                         </div>
-                        <div class="ms-3">
-                            <i class="bi bi-shield-check text-warning" style="font-size: 3rem;"></i>
+                        <div class="d-grid">
+                            <a asp-controller="Users" asp-action="Index" class="btn footer-btn btn-sm">
+                                <i class="bi bi-eye me-1"></i> View All Users
+                            </a>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-transparent">
-                    <div class="text-muted small">All systems operational</div>
+            </div>
+        }
+
+        @if (canViewVisitors)
+        {
+            <div class="col-xl-3 col-md-6">
+                <div class="card stat-card success shadow h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="flex-grow-1">
+                                <div class="stat-label mb-2">Active Visitors</div>
+                                <div class="stat-value" style="background: linear-gradient(135deg, #11998e, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                    @activeVisitorCount
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-circle-fill text-success" style="font-size: 0.5rem;"></i> Currently on site
+                                </small>
+                            </div>
+                            <div class="stat-icon success">
+                                <i class="bi bi-door-open-fill"></i>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <a asp-controller="VisitLogs" asp-action="Index" class="btn footer-btn btn-sm">
+                                <i class="bi bi-eye me-1"></i> View Active Visitors
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card info shadow h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <div class="stat-label mb-2">User Groups</div>
+                            <div class="stat-value" style="background: linear-gradient(135deg, #4facfe, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                @groupCount
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-diagram-3 me-1"></i> Organization units
+                            </small>
+                        </div>
+                        <div class="stat-icon info">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <a asp-controller="Groups" asp-action="Index" class="btn footer-btn btn-sm">
+                            <i class="bi bi-eye me-1"></i> View All Groups
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="bi bi-lightning-fill"></i> Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <a asp-controller="VisitLogs" asp-action="CheckIn" class="btn btn-lg btn-success w-100">
-                                <i class="bi bi-box-arrow-in-right"></i>
-                                <div class="mt-2">Check In Visitor</div>
-                            </a>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning shadow h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="flex-grow-1">
+                            <div class="stat-label mb-2">System Status</div>
+                            <div class="h4 mb-2 text-success">
+                                <i class="bi bi-circle-fill me-2" style="font-size: 0.8rem;"></i> Online
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-check-circle me-1"></i> All systems operational
+                            </small>
                         </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Users" asp-action="Create" class="btn btn-lg btn-primary w-100">
-                                <i class="bi bi-person-plus"></i>
-                                <div class="mt-2">Add New User</div>
-                            </a>
+                        <div class="stat-icon warning">
+                            <i class="bi bi-shield-check"></i>
                         </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Groups" asp-action="Create" class="btn btn-lg btn-info w-100">
-                                <i class="bi bi-diagram-3"></i>
-                                <div class="mt-2">Create Group</div>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a asp-controller="Groups" asp-action="Statistics" class="btn btn-lg btn-warning w-100">
-                                <i class="bi bi-bar-chart"></i>
-                                <div class="mt-2">View Statistics</div>
-                            </a>
-                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn footer-btn btn-sm" disabled>
+                            <i class="bi bi-activity me-1"></i> Monitor Status
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> System Overview</h5>
+    <!-- Quick Actions Section -->
+    <div class="section-title">
+        <h3 class="fw-bold mb-0">
+            <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+            Quick Actions
+        </h3>
+    </div>
+
+    <div class="quick-actions-grid mb-4">
+        @if (canCheckInVisitor)
+        {
+            <a asp-controller="VisitLogs" asp-action="CheckIn" class="action-card success text-white">
+                <div class="action-icon">
+                    <i class="bi bi-box-arrow-in-right"></i>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
-                                <h6 class="mt-2">Access Control</h6>
-                                <p class="text-muted small mb-0">Monitor visitor access in real-time</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 2rem;"></i>
-                                <h6 class="mt-2">Secure & Reliable</h6>
-                                <p class="text-muted small mb-0">JWT-based authentication system</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="bi bi-graph-up text-info" style="font-size: 2rem;"></i>
-                                <h6 class="mt-2">Analytics Ready</h6>
-                                <p class="text-muted small mb-0">Track and analyze visitor patterns</p>
-                            </div>
-                        </div>
+                <h5 class="fw-bold mb-2">Check In Visitor</h5>
+                <p class="mb-0 opacity-90">Register a new visitor arrival</p>
+            </a>
+        }
+
+        @if (canManageUsers)
+        {
+            <a asp-controller="Users" asp-action="Create" class="action-card primary text-white">
+                <div class="action-icon">
+                    <i class="bi bi-person-plus"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Add New User</h5>
+                <p class="mb-0 opacity-90">Create a new user account</p>
+            </a>
+
+            <a asp-controller="Groups" asp-action="Create" class="action-card info text-white">
+                <div class="action-icon">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Create Group</h5>
+                <p class="mb-0 opacity-90">Set up a new user group</p>
+            </a>
+        }
+
+        <a asp-controller="Groups" asp-action="Statistics" class="action-card warning text-white">
+            <div class="action-icon">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <h5 class="fw-bold mb-2">View Statistics</h5>
+            <p class="mb-0 opacity-90">Analyze system metrics</p>
+        </a>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="section-title mt-5">
+        <h3 class="fw-bold mb-0">
+            <i class="bi bi-clock-history text-info me-2"></i>
+            System Overview
+        </h3>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
                     </div>
+                    <h5 class="fw-bold mb-2">Access Control</h5>
+                    <p class="text-muted mb-0">Monitor visitor access in real-time with instant notifications</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Secure & Reliable</h5>
+                    <p class="text-muted mb-0">JWT-based authentication with enterprise-grade security</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-graph-up-arrow text-info" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Analytics Ready</h5>
+                    <p class="text-muted mb-0">Track and analyze visitor patterns with detailed insights</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Update time every second
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const dateString = now.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+            document.getElementById('currentTime').textContent = `${dateString}, ${timeString}`;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Add entrance animations with stagger
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.stat-card, .action-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in');
+            });
+        });
+    </script>
+}

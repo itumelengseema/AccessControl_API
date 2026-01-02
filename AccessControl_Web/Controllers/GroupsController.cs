@@ -1,9 +1,11 @@
 using AccessControl_API.Models.DTO;
 using AccessControl_Web.Services.IServices;
+using AccessControl_Web.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccessControl_Web.Controllers
 {
+    [AuthorizeSession]
     public class GroupsController : Controller
     {
         private readonly IGroupService _groupService;
@@ -13,7 +15,7 @@ namespace AccessControl_Web.Controllers
             _groupService = groupService;
         }
 
-        // GET: Groups
+        // GET: Groups - Anyone can view groups
         public async Task<IActionResult> Index()
         {
             var response = await _groupService.GetAllGroupsAsync();
@@ -27,15 +29,17 @@ namespace AccessControl_Web.Controllers
             return View(new List<GroupDTO>());
         }
 
-        // GET: Groups/Create
+        // GET: Groups/Create - Only MANAGE_USERS permission
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Groups/Create
+        // POST: Groups/Create - Only MANAGE_USERS permission
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> Create(GroupDTO groupDto)
         {
             if (!ModelState.IsValid)
@@ -55,7 +59,7 @@ namespace AccessControl_Web.Controllers
             return View(groupDto);
         }
 
-        // GET: Groups/Statistics
+        // GET: Groups/Statistics - Anyone can view statistics
         public async Task<IActionResult> Statistics()
         {
             var response = await _groupService.GetUsersPerGroupCountAsync();
@@ -69,14 +73,14 @@ namespace AccessControl_Web.Controllers
             return View(new List<UsersPerGroupDTO>());
         }
 
-        // POST: Groups/CreateDefaults
+        // POST: Groups/CreateDefaults - Only MANAGE_USERS permission
         [HttpPost]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> CreateDefaults()
         {
             var defaultGroups = new[] { "Admin", "Security", "Employee", "Visitor" };
             var createdCount = 0;
             var errors = new List<string>();
-            var detailedErrors = new List<string>();
 
             foreach (var groupName in defaultGroups)
             {
@@ -89,16 +93,7 @@ namespace AccessControl_Web.Controllers
                 }
                 else
                 {
-                    var errorMsg = response?.Message ?? "Unknown error";
-                    errors.Add($"{groupName}: {errorMsg}");
-                    
-                    // Log detailed error to console
-                    Console.WriteLine($"Failed to create group '{groupName}': {errorMsg}");
-                    Console.WriteLine($"Response Status: {response?.Status}");
-                    Console.WriteLine($"Response Data: {response?.Data}");
-                    Console.WriteLine($"Response Errors: {response?.Errors}");
-                    
-                    detailedErrors.Add($"{groupName} - Status: {response?.Status}, Message: {errorMsg}");
+                    errors.Add($"{groupName}: {response?.Message ?? "Unknown error"}");
                 }
             }
 
@@ -109,46 +104,10 @@ namespace AccessControl_Web.Controllers
 
             if (errors.Any())
             {
-                var errorMessage = "Failed to create some groups:\n" + string.Join("\n", detailedErrors);
-                TempData["Error"] = errorMessage;
-                
-                // Also log to console for debugging
-                Console.WriteLine("=== GROUP CREATION ERRORS ===");
-                Console.WriteLine(errorMessage);
-                Console.WriteLine("=============================");
+                TempData["Error"] = "Failed to create some groups: " + string.Join(", ", errors);
             }
 
             return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Groups/TestConnection
-        public async Task<IActionResult> TestConnection()
-        {
-            try
-            {
-                var response = await _groupService.GetAllGroupsAsync();
-                
-                var diagnostics = new
-                {
-                    ApiReachable = response != null,
-                    Success = response?.Success,
-                    Status = response?.Status.ToString(),
-                    Message = response?.Message,
-                    DataCount = response?.Data?.Count() ?? 0,
-                    Errors = response?.Errors
-                };
-
-                ViewBag.Diagnostics = diagnostics;
-                ViewBag.RawResponse = System.Text.Json.JsonSerializer.Serialize(response, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                
-                return View();
-            }
-            catch (Exception ex)
-            {
-                ViewBag.Error = ex.Message;
-                ViewBag.StackTrace = ex.StackTrace;
-                return View();
-            }
         }
     }
 }

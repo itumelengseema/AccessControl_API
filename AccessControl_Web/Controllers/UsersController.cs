@@ -1,9 +1,11 @@
 using AccessControl_API.Models.DTO;
 using AccessControl_Web.Services.IServices;
+using AccessControl_Web.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccessControl_Web.Controllers
 {
+    [AuthorizeSession]
     public class UsersController : Controller
     {
         private readonly IUserService _userService;
@@ -28,6 +30,7 @@ namespace AccessControl_Web.Controllers
         }
 
         // GET: Users/Create
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public IActionResult Create()
         {
             return View();
@@ -36,6 +39,7 @@ namespace AccessControl_Web.Controllers
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> Create(UserCreateUpdateDTO userDto)
         {
             if (!ModelState.IsValid)
@@ -56,6 +60,7 @@ namespace AccessControl_Web.Controllers
         }
 
         // GET: Users/Edit/5
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> Edit(int id)
         {
             var response = await _userService.GetAllUsersAsync();
@@ -85,6 +90,7 @@ namespace AccessControl_Web.Controllers
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> Edit(int id, UserCreateUpdateDTO userDto)
         {
             if (!ModelState.IsValid)
@@ -107,6 +113,7 @@ namespace AccessControl_Web.Controllers
         }
 
         // GET: Users/Delete/5
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> Delete(int id)
         {
             var response = await _userService.GetAllUsersAsync();
@@ -127,6 +134,7 @@ namespace AccessControl_Web.Controllers
         // POST: Users/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var response = await _userService.DeleteUserAsync(id);

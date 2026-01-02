@@ -1,9 +1,11 @@
 using AccessControl_API.Models.DTO;
 using AccessControl_Web.Services.IServices;
+using AccessControl_Web.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccessControl_Web.Controllers
 {
+    [AuthorizeSession]
     public class VisitLogsController : Controller
     {
         private readonly IVisitLogService _visitLogService;
@@ -23,7 +25,8 @@ namespace AccessControl_Web.Controllers
             _logger = logger;
         }
 
-        // GET: VisitLogs
+        // GET: VisitLogs - Requires VIEW_ACTIVE_VISITORS permission
+        [RequirePermission(PermissionHelper.VIEW_ACTIVE_VISITORS)]
         public async Task<IActionResult> Index()
         {
             var response = await _visitLogService.GetActiveVisitorsAsync();
@@ -37,15 +40,17 @@ namespace AccessControl_Web.Controllers
             return View(new List<VisitLogResponseDTO>());
         }
 
-        // GET: VisitLogs/CheckIn
+        // GET: VisitLogs/CheckIn - Requires CHECK_IN_VISITOR permission
+        [RequirePermission(PermissionHelper.CHECK_IN_VISITOR)]
         public IActionResult CheckIn()
         {
             return View();
         }
 
-        // POST: VisitLogs/CheckIn
+        // POST: VisitLogs/CheckIn - Requires CHECK_IN_VISITOR permission
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.CHECK_IN_VISITOR)]
         public async Task<IActionResult> CheckIn(
             string VisitorFirstName,
             string VisitorLastName,
@@ -206,8 +211,9 @@ namespace AccessControl_Web.Controllers
             return View();
         }
 
-        // POST: VisitLogs/CheckOut/{id}
+        // POST: VisitLogs/CheckOut/{id} - Requires CHECK_OUT_VISITOR permission
         [HttpPost]
+        [RequirePermission(PermissionHelper.CHECK_OUT_VISITOR)]
         public async Task<IActionResult> CheckOut(int id)
         {
             _logger.LogInformation("Check-out attempt for visit log ID: {VisitLogId}", id);
