@@ -24,6 +24,19 @@ namespace AccessControl_API.Controllers
         [HttpPost]
         public async Task<ActionResult<ApiResponse<GroupDTO>>> CreateGroup([FromBody] GroupDTO groupDto)
         {
+            // Validate model state
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                
+                return BadRequest(ApiResponse<GroupDTO>.BadRequestResponse(
+                    "Validation failed. Please check your input.", 
+                    errors));
+            }
+
             var group = _mapper.Map<Group>(groupDto);
             _db.Groups.Add(group);
             await _db.SaveChangesAsync();

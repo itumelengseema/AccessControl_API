@@ -28,6 +28,19 @@ namespace AccessControl_API.Controllers
         {
             try
             {
+                // Validate model state
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    
+                    return BadRequest(ApiResponse<UserDTO>.BadRequestResponse(
+                        "Validation failed. Please check your input.", 
+                        errors));
+                }
+
                 if (userDto == null)
                 {
                     return BadRequest(ApiResponse<UserDTO>.BadRequestResponse("User data is required."));
@@ -107,6 +120,19 @@ namespace AccessControl_API.Controllers
         {
             try
             {
+                // Validate model state
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    
+                    return BadRequest(ApiResponse<UserDTO>.BadRequestResponse(
+                        "Validation failed. Please check your input.", 
+                        errors));
+                }
+
                 var user = await _db.Users
                     .Include(u => u.UserGroups)
                     .FirstOrDefaultAsync(u => u.Id == id);

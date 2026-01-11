@@ -22,6 +22,19 @@ namespace AccessControl_API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<UserDTO>>> Register([FromBody] RegistrationRequestDTO registrationRequestDTO)
         {
+            // Validate model state
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                
+                return BadRequest(ApiResponse<UserDTO>.BadRequestResponse(
+                    "Validation failed. Please check your input.", 
+                    errors));
+            }
+
             // Check if email exists first
             var emailExists = await _authService.IsEmailExistAsync(registrationRequestDTO.Email);
             if (emailExists)
@@ -52,6 +65,19 @@ namespace AccessControl_API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<LoginResponseDTO>>> Login([FromBody] LoginRequestDTO loginRequestDTO)
         {
+            // Validate model state
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                
+                return BadRequest(ApiResponse<LoginResponseDTO>.BadRequestResponse(
+                    "Validation failed. Please check your input.", 
+                    errors));
+            }
+
             var result = await _authService.LoginAsync(loginRequestDTO);
             
             if (result == null)

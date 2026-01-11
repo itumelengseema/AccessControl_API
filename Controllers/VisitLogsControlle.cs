@@ -29,6 +29,19 @@ namespace AccessControl_API.Controllers
         {
             try
             {
+                // Validate model state
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    
+                    return BadRequest(ApiResponse<VisitLogResponseDTO>.BadRequestResponse(
+                        "Validation failed. Please check your input.", 
+                        errors));
+                }
+
                 _logger.LogInformation("Check-in request received for UserId: {UserId}", checkInDTO?.UserId);
 
                 if (checkInDTO == null || checkInDTO.UserId <= 0)
