@@ -48,13 +48,31 @@ namespace AccessControl_API.Services
 
                 if (user == null)
                 {
-                    return null; // User not found
+                    return new LoginResponseDTO 
+                    { 
+                        Result = LoginResult.InvalidCredentials,
+                        Message = "Invalid email or password."
+                    };
                 }
 
                 // Verify password
                 if (!PasswordHasher.Verify(loginRequestDTO.Password, user.PasswordHash))
                 {
-                    return null; // Invalid password
+                    return new LoginResponseDTO 
+                    { 
+                        Result = LoginResult.InvalidCredentials,
+                        Message = "Invalid email or password."
+                    };
+                }
+
+                // Check if user account is approved
+                if (!user.IsApproved)
+                {
+                    return new LoginResponseDTO 
+                    { 
+                        Result = LoginResult.AccountNotApproved,
+                        Message = "Your account is pending approval by an administrator. You will be notified once your account is approved."
+                    };
                 }
 
                 // Get user permissions
@@ -72,7 +90,9 @@ namespace AccessControl_API.Services
                 {
                     User = _mapper.Map<UserDTO>(user),
                     Token = token,
-                    Permissions = permissions
+                    Permissions = permissions,
+                    Result = LoginResult.Success,
+                    Message = "Login successful."
                 };
             }
             catch (Exception)
@@ -96,13 +116,17 @@ namespace AccessControl_API.Services
                 }
 
                 // Verify that the group exists
-                var groupExists = await _db.Groups.AnyAsync(g => g.Id == registrationRequestDTO.GroupId);
-                if (!groupExists)
+                var group = await _db.Groups.FirstOrDefaultAsync(g => g.Id == registrationRequestDTO.GroupId);
+                if (group == null)
                 {
                     // Log for debugging
                     Console.WriteLine($"Invalid group ID: {registrationRequestDTO.GroupId}");
                     return null; // Invalid group ID
                 }
+
+                // Determine if approval is needed based on group
+                bool requiresApproval = group.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase) ||
+                                       group.Name.Equals("Security", StringComparison.OrdinalIgnoreCase);
 
                 // Create new user
                 var user = new User
@@ -111,7 +135,8 @@ namespace AccessControl_API.Services
                     LastName = registrationRequestDTO.LastName,
                     Email = registrationRequestDTO.Email,
                     IdentificationNumber = registrationRequestDTO.IdentificationNumber,
-                    PasswordHash = PasswordHasher.Hash(registrationRequestDTO.Password)
+                    PasswordHash = PasswordHasher.Hash(registrationRequestDTO.Password),
+                    IsApproved = !requiresApproval // Auto-approve if not Admin/Security
                 };
 
                 _db.Users.Add(user);

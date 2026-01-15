@@ -148,5 +148,61 @@ namespace AccessControl_Web.Controllers
             TempData["Error"] = response?.Message ?? "Failed to delete user";
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: Users/PendingApprovals
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
+        public async Task<IActionResult> PendingApprovals()
+        {
+            var response = await _userService.GetPendingApprovalsAsync();
+
+            if (response?.Success == true && response.Data != null)
+            {
+                return View(response.Data);
+            }
+
+            TempData["Error"] = response?.Message ?? "Failed to load pending approvals";
+            return View(new List<UserDTO>());
+        }
+
+        // POST: Users/Approve/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var response = await _userService.ApproveUserAsync(id);
+
+            if (response?.Success == true)
+            {
+                TempData["Success"] = $"User '{response.Data?.FirstName} {response.Data?.LastName}' has been approved successfully!";
+            }
+            else
+            {
+                TempData["Error"] = response?.Message ?? "Failed to approve user";
+            }
+
+            return RedirectToAction(nameof(PendingApprovals));
+        }
+
+        // POST: Users/Reject/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequirePermission(PermissionHelper.MANAGE_USERS)]
+        public async Task<IActionResult> Reject(int id)
+        {
+            var response = await _userService.RejectUserAsync(id);
+
+            if (response?.Success == true)
+            {
+                TempData["Success"] = "User registration has been rejected and removed";
+            }
+            else
+            {
+                TempData["Error"] = response?.Message ?? "Failed to reject user";
+            }
+
+            return RedirectToAction(nameof(PendingApprovals));
+        }
     }
 }
+

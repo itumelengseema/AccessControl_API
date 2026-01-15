@@ -178,6 +178,7 @@ namespace AccessControl_API.Controllers
             }
         }
 
+
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<ApiResponse<object>>> DeleteUser(int id)
         {
@@ -201,6 +202,96 @@ namespace AccessControl_API.Controllers
             }
         }
 
+        [HttpGet("pending-approvals")]
+        public async Task<ActionResult<ApiResponse<List<UserDTO>>>> GetPendingApprovals()
+        {
+            try
+            {
+                var pendingUsers = await _db.Users
+                    .Where(u => !u.IsApproved)
+                    .Include(u => u.UserGroups)
+                        .ThenInclude(ug => ug.Group)
+                    .ToListAsync();
+
+                var userDtos = _mapper.Map<List<UserDTO>>(pendingUsers);
+                
+                return Ok(ApiResponse<List<UserDTO>>.SuccessResponse(userDtos, "Pending approvals retrieved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving pending approvals: {Message}", ex.Message);
+                return StatusCode(500, ApiResponse<List<UserDTO>>.InternalServerErrorResponse(
+                    $"An error occurred while retrieving pending approvals: {ex.Message}"));
+            }
+        }
+
+        [HttpPost("{id:int}/approve")]
+        public async Task<ActionResult<ApiResponse<UserDTO>>> ApproveUser(int id)
+        {
+            try
+            {
+                var user = await _db.Users
+                    .Include(u => u.UserGroups)
+                        .ThenInclude(ug => ug.Group)
+                    .FirstOrDefaultAsync(u => u.Id == id);
+
+                if (user == null)
+                {
+                    return NotFound(ApiResponse<UserDTO>.NotFoundResponse("User not found."));
+                }
+
+                if (user.IsApproved)
+                {
+                    return BadRequest(ApiResponse<UserDTO>.BadRequestResponse("User is already approved."));
+                }
+
+                user.IsApproved = true;
+                user.ApprovedAt = DateTime.UtcNow;
+                // TODO: Set ApprovedBy from current user's ID from JWT token
+                
+                await _db.SaveChangesAsync();
+
+                var userDto = _mapper.Map<UserDTO>(user);
+                
+                return Ok(ApiResponse<UserDTO>.SuccessResponse(userDto, "User approved successfully"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error approving user {UserId}: {Message}", id, ex.Message);
+                return StatusCode(500, ApiResponse<UserDTO>.InternalServerErrorResponse(
+                    $"An error occurred while approving the user: {ex.Message}"));
+            }
+        }
+
+        [HttpPost("{id:int}/reject")]
+        public async Task<ActionResult<ApiResponse<object>>> RejectUser(int id)
+        {
+            try
+            {
+                var user = await _db.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound(ApiResponse<object>.NotFoundResponse("User not found."));
+                }
+
+                if (user.IsApproved)
+                {
+                    return BadRequest(ApiResponse<object>.BadRequestResponse("Cannot reject an already approved user."));
+                }
+
+                _db.Users.Remove(user);
+                await _db.SaveChangesAsync();
+                
+                return Ok(ApiResponse<object>.SuccessResponse(null!, "User registration rejected and removed"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error rejecting user {UserId}: {Message}", id, ex.Message);
+                return StatusCode(500, ApiResponse<object>.InternalServerErrorResponse(
+                    $"An error occurred while rejecting the user: {ex.Message}"));
+            }
+        }
+
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<UserDTO>>>> GetAllUsers()
         {
@@ -210,6 +301,8 @@ namespace AccessControl_API.Controllers
                     .Include(u => u.UserGroups)
                     .ThenInclude(ug => ug.Group)
                     .ToListAsync();
+                    
+
                     
                 var userDtos = _mapper.Map<List<UserDTO>>(users);
                 return Ok(ApiResponse<List<UserDTO>>.SuccessResponse(userDtos, "Users retrieved successfully"));

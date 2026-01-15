@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AccessControl\AccessControl.DTO\AccessControl.DTO.csproj" />
-    <ProjectReference Include="..\AccessControl\AccessControl_API.csproj" />
+    <ProjectReference Include="..\AccessControl.DTO\AccessControl.DTO.csproj" />
+    <ProjectReference Include="..\AccessControl_API\AccessControl_API.csproj" />
   </ItemGroup>
 
   <ItemGroup>

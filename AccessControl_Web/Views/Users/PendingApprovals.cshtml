@@ -1,0 +1,173 @@
+@model List<AccessControl_API.Models.DTO.UserDTO>
+@{
+    ViewData["Title"] = "Pending User Approvals";
+}
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-clock-history text-warning me-2"></i>
+                Pending User Approvals
+            </h2>
+            <p class="text-muted mb-0">Review and approve or reject user registrations for Admin and Security roles</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to All Users
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Count == 0)
+    {
+        <!-- Empty State -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-check-all text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="mb-2">No Pending Approvals</h4>
+                <p class="text-muted mb-4">All user registrations have been reviewed. Great job!</p>
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="bi bi-people me-1"></i> View All Users
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Pending Approvals Count -->
+        <div class="alert alert-warning border-0 shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-exclamation-circle-fill fs-3 me-3"></i>
+                <div>
+                    <strong>@Model.Count</strong> user registration@(Model.Count != 1 ? "s" : "") awaiting your review
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Users Cards -->
+        <div class="row g-4">
+            @foreach (var user in Model)
+            {
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm h-100 hover-shadow">
+                        <div class="card-header bg-white border-bottom">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-person-badge text-primary me-2"></i>
+                                    @user.FirstName @user.LastName
+                                </h5>
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-clock me-1"></i> Pending
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-envelope text-muted me-2"></i>
+                                        <div>
+                                            <small class="text-muted d-block">Email</small>
+                                            <strong>@user.Email</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-card-text text-muted me-2"></i>
+                                        <div>
+                                            <small class="text-muted d-block">ID Number</small>
+                                            <strong>@user.IdentificationNumber</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-shaded text-muted me-2"></i>
+                                        <div>
+                                            <small class="text-muted d-block">Role</small>
+                                            <span class="badge @(user.GroupName == "Admin" ? "bg-danger" : "bg-info")">
+                                                @user.GroupName
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <!-- Action Buttons -->
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <form asp-action="Approve" asp-route-id="@user.Id" method="post" class="d-inline w-100">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-success w-100" onclick="return confirm('Are you sure you want to APPROVE this user?')">
+                                            <i class="bi bi-check-circle me-1"></i> Approve
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-6">
+                                    <form asp-action="Reject" asp-route-id="@user.Id" method="post" class="d-inline w-100">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to REJECT and DELETE this user registration?')">
+                                            <i class="bi bi-x-circle me-1"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+    }
+
+    .card-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+    </script>
+}

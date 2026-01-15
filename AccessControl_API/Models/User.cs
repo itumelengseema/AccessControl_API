@@ -20,7 +20,12 @@ namespace AccessControl_API.Models
         [Required]
         public string PasswordHash { get; set; } = null!;
 
+        [Required]
+        public bool IsApproved { get; set; } = false;
 
+        public DateTime? ApprovedAt { get; set; }
+        
+        public int? ApprovedBy { get; set; }
 
 
         // Navigation properties
