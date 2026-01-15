@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using AccessControl_Web.Helpers
+@using AccessControl_Web.Filters
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -45,6 +47,15 @@
                             <span>Users</span>
                         </a>
                     </li>
+                    @if (ViewContext.HasPermission(PermissionHelper.MANAGE_USERS))
+                    {
+                        <li class="@(ViewContext.RouteData.Values["Action"]?.ToString() == "PendingApprovals" ? "active" : "")">
+                            <a asp-controller="Users" asp-action="PendingApprovals">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Pending Approvals</span>
+                            </a>
+                        </li>
+                    }
                     <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Groups" ? "active" : "")">
                         <a asp-controller="Groups" asp-action="Index">
                             <i class="bi bi-diagram-3-fill"></i>

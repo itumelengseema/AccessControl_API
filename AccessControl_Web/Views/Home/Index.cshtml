@@ -162,7 +162,7 @@
         animation: bounce 0.6s;
     }
 
-    @keyframes bounce {
+    @@keyframes bounce {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
     }
@@ -189,7 +189,7 @@
         animation: fadeIn 0.6s ease-in;
     }
 
-    @keyframes fadeIn {
+    @@keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
@@ -208,7 +208,7 @@
         gap: 1.5rem;
     }
 
-    @media (max-width: 768px) {
+    @@media (max-width: 768px) {
         .dashboard-hero {
             padding: 1.5rem;
         }
@@ -400,6 +400,14 @@
                 </div>
                 <h5 class="fw-bold mb-2">Add New User</h5>
                 <p class="mb-0 opacity-90">Create a new user account</p>
+            </a>
+
+            <a asp-controller="Users" asp-action="PendingApprovals" class="action-card" style="background: linear-gradient(135deg, #f093fb, #f5576c); color: white;">
+                <div class="action-icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Pending Approvals</h5>
+                <p class="mb-0 opacity-90">Review Admin & Security registrations</p>
             </a>
 
             <a asp-controller="Groups" asp-action="Create" class="action-card info text-white">

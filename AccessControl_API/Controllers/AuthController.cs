@@ -82,10 +82,24 @@ namespace AccessControl_API.Controllers
             
             if (result == null)
             {
-                return Unauthorized(ApiResponse<LoginResponseDTO>.UnauthorizedResponse("Invalid credentials"));
+                return Unauthorized(ApiResponse<LoginResponseDTO>.UnauthorizedResponse("Login failed"));
             }
-            
-            return Ok(ApiResponse<LoginResponseDTO>.SuccessResponse(result, "Login successful"));
+
+            // Handle different login results
+            switch (result.Result)
+            {
+                case LoginResult.Success:
+                    return Ok(ApiResponse<LoginResponseDTO>.SuccessResponse(result, result.Message ?? "Login successful"));
+
+                case LoginResult.AccountNotApproved:
+                    return StatusCode(403, ApiResponse<LoginResponseDTO>.ForbiddenResponse(
+                        result.Message ?? "Your account is pending approval by an administrator."));
+
+                case LoginResult.InvalidCredentials:
+                default:
+                    return Unauthorized(ApiResponse<LoginResponseDTO>.UnauthorizedResponse(
+                        result.Message ?? "Invalid email or password."));
+            }
         }
     }
 }

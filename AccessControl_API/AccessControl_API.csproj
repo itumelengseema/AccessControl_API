@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="AccessControl_API.slnx" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
@@ -34,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="AccessControl.DTO\AccessControl.DTO.csproj" />
+    <ProjectReference Include="..\AccessControl.DTO\AccessControl.DTO.csproj" />
   </ItemGroup>
 
   <ItemGroup>

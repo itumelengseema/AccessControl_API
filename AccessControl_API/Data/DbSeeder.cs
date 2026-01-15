@@ -56,7 +56,9 @@ namespace AccessControl_API.Data
                     LastName = "Admin",
                     Email = "admin@access.local",
                     IdentificationNumber = "ADMIN-001",
-                    PasswordHash = PasswordHasher.Hash("Admin@123")
+                    PasswordHash = PasswordHasher.Hash("Admin@123"),
+                    IsApproved = true, // Default admin is pre-approved
+                    ApprovedAt = DateTime.UtcNow
                 };
 
                 context.Users.Add(adminUser);

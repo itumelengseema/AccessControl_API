@@ -9,5 +9,9 @@ namespace AccessControl_Web.Services.IServices
         Task<ApiResponse<object>?> DeleteUserAsync(int id);
         Task<ApiResponse<List<UserDTO>>?> GetAllUsersAsync();
         Task<ApiResponse<int>?> GetUserCountAsync();
+        Task<ApiResponse<List<UserDTO>>?> GetPendingApprovalsAsync();
+        Task<ApiResponse<UserDTO>?> ApproveUserAsync(int userId);
+        Task<ApiResponse<object>?> RejectUserAsync(int userId);
     }
 }
+

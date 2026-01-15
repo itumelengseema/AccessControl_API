@@ -58,5 +58,33 @@ namespace AccessControl_Web.Services
                 Data = userDto
             });
         }
+
+        public async Task<ApiResponse<List<UserDTO>>?> GetPendingApprovalsAsync()
+        {
+            return await _baseService.SendAsync<ApiResponse<List<UserDTO>>>(new ApiRequest
+            {
+                ApiType = SD.ApiType.GET,
+                Url = SD.AccessControlAPIBase + SD.UserAPIBase + "pending-approvals"
+            });
+        }
+
+        public async Task<ApiResponse<UserDTO>?> ApproveUserAsync(int userId)
+        {
+            return await _baseService.SendAsync<ApiResponse<UserDTO>>(new ApiRequest
+            {
+                ApiType = SD.ApiType.POST,
+                Url = SD.AccessControlAPIBase + SD.UserAPIBase + userId + "/approve"
+            });
+        }
+
+        public async Task<ApiResponse<object>?> RejectUserAsync(int userId)
+        {
+            return await _baseService.SendAsync<ApiResponse<object>>(new ApiRequest
+            {
+                ApiType = SD.ApiType.POST,
+                Url = SD.AccessControlAPIBase + SD.UserAPIBase + userId + "/reject"
+            });
+        }
     }
 }
+
