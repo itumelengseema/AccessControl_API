@@ -60,8 +60,20 @@ namespace AccessControl_API.Data
                     IsApproved = true, // Default admin is pre-approved
                     ApprovedAt = DateTime.UtcNow
                 };
+                var securityUser = new User
+                {
+                    FirstName = "Default",
+                    LastName = "Security",
+                    Email = "secure@access.com",
+                    IdentificationNumber = "SEC-001",
+                    PasswordHash = PasswordHasher.Hash("Secure@123"),
+                    IsApproved = true,
+                    ApprovedAt = DateTime.UtcNow
+                };
+                
 
                 context.Users.Add(adminUser);
+                context.Users.Add(securityUser);
                 context.SaveChanges();
 
                 // Assign admin user to Admin group
@@ -71,12 +83,22 @@ namespace AccessControl_API.Data
                     GroupId = adminGroup.Id
                 });
 
+                // Assign security user to Security group
+                context.UserGroups.Add(new UserGroup
+                {
+                    UserId = securityUser.Id,
+                    GroupId = securityGroup.Id
+                });
+
                 context.SaveChanges();
 
                 Console.WriteLine("Database seeded successfully!");
                 Console.WriteLine("Default Admin User:");
                 Console.WriteLine($"  Email: {adminUser.Email}");
                 Console.WriteLine("  Password: Admin@123");
+
+                Console.WriteLine($"Default Security User:{securityUser.Email}");
+                Console.WriteLine("  Password: Secure@123");
             }
         }
     }

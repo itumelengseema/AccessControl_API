@@ -87,7 +87,8 @@ namespace AccessControl_Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception during login for {Email}", model.Email);
-                ModelState.AddModelError("", "An error occurred during login. Please check if the API is running.");
+                ModelState.AddModelError("", $"Cannot connect to API server. Please ensure the API is running on {SD.AccessControlAPIBase}");
+                ModelState.AddModelError("", "To start the API: Open a terminal and run 'dotnet run --project AccessControl_API'");
             }
 
             return View(model);

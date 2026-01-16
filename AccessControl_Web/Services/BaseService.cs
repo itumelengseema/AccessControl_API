@@ -31,6 +31,9 @@ namespace AccessControl_Web.Services
                     return default;
                 }
 
+                Console.WriteLine($"[BaseService] Making {apiRequest.ApiType} request to: {apiRequest.Url}");
+                Console.WriteLine($"[BaseService] API Base URL: {SD.AccessControlAPIBase}");
+
                 var message = new HttpRequestMessage
                 {
                     RequestUri = new Uri(apiRequest.Url, UriKind.RelativeOrAbsolute),
@@ -47,22 +50,35 @@ namespace AccessControl_Web.Services
                 if (apiRequest.Data != null)
                 {
                     message.Content = JsonContent.Create(apiRequest.Data, options: _options);
+                    var requestBody = await message.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[BaseService] Request body: {requestBody}");
                 }
 
                 var apiResponse = await client.SendAsync(message);
+                var responseContent = await apiResponse.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"[BaseService] Response status: {apiResponse.StatusCode}");
+                Console.WriteLine($"[BaseService] Response content: {responseContent}");
 
                 if (!apiResponse.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"API Error: {apiResponse.StatusCode} - {await apiResponse.Content.ReadAsStringAsync()}");
+                    Console.WriteLine($"[BaseService] API Error: {apiResponse.StatusCode}");
                     return default;
                 }
 
-                return await apiResponse.Content.ReadFromJsonAsync<T>(_options);
+                return JsonSerializer.Deserialize<T>(responseContent, _options);
+            }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"[BaseService] Connection Error: Cannot reach API at {SD.AccessControlAPIBase}");
+                Console.WriteLine($"[BaseService] Error: {ex.Message}");
+                Console.WriteLine($"[BaseService] Make sure the API is running on the correct port!");
+                return default;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected Error: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                Console.WriteLine($"[BaseService] Unexpected Error: {ex.Message}");
+                Console.WriteLine($"[BaseService] Stack Trace: {ex.StackTrace}");
                 return default;
             }
         }
